@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+
+# Node / Expo / Bun
+node_modules/
+.expo/
+dist/
+build/
+*.lock
+bun.lockb
+
+# VSCode
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Compiled
+*.dll
+*.exe
+*.obj
+*.pdb
