@@ -3,87 +3,75 @@ import asyncio
 import websockets
 import json
 import logging
-import random
-from datetime import datetime
+from telemetry_reader import TruckTelemetryReader
 
 # Configuración de logs para monitorear la actividad del servidor
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-# Estado actual de la telemetría (Simulado)
-# Este objeto persistirá durante la ejecución para permitir simulaciones fluidas.
-current_telemetry = {
-    "speed": 0.0,
-    "rpm": 800,
-    "fuel": 100,
-    "gear": 0,
-    "lat": -10.1234,
-    "lng": -75.5678,
-    "heading": 0,
-    "cargo": "Carga de Prueba"
-}
+# Instancia global del lector de telemetría real
+reader = TruckTelemetryReader()
 
-async def update_simulation():
+async def telemetry_bridge(websocket):
     """
-    Tarea en segundo plano que actualiza los valores de telemetría.
-    Simula un camión acelerando gradualmente hasta una velocidad de crucero.
+    Gestiona la conexión WebSocket con la aplicación móvil.
+    Actúa como puente leyendo la memoria compartida del juego y
+    retransmitiendo los datos en tiempo real.
     """
-    global current_telemetry
-    while True:
-        # Lógica de simulación simple: acelerar hasta 80 km/h
-        if current_telemetry["speed"] < 80:
-            current_telemetry["speed"] += random.uniform(0.5, 1.5)
-            current_telemetry["rpm"] = 1000 + (current_telemetry["speed"] * 20)
-            current_telemetry["gear"] = int(current_telemetry["speed"] / 15) + 1
-        else:
-            # Velocidad de crucero con pequeñas oscilaciones
-            current_telemetry["speed"] += random.uniform(-0.5, 0.5)
-            current_telemetry["rpm"] = 2000 + random.randint(-20, 20)
-
-        # Consumo mínimo de combustible
-        current_telemetry["fuel"] = max(0, current_telemetry["fuel"] - 0.001)
-
-        await asyncio.sleep(0.5)
-
-async def send_telemetry(websocket):
-    """
-    Gestiona el envío de telemetría a un cliente conectado a través de WebSockets.
-    Args:
-        websocket: Instancia de la conexión WebSocket activa.
-    """
-    logger.info(f"✅ Cliente conectado desde: {websocket.remote_address}")
+    logger.info(f"✅ Dispositivo conectado: {websocket.remote_address}")
 
     try:
         while True:
-            # Añadimos el timestamp actual al paquete de datos
-            data_to_send = current_telemetry.copy()
-            data_to_send["timestamp"] = datetime.now().isoformat()
+            # Si no estamos conectados a la memoria del plugin, intentamos conectar
+            if not reader.is_connected:
+                if not reader.connect():
+                    # Avisamos a la app que estamos esperando al simulador
+                    await websocket.send(json.dumps({
+                        "status": "waiting_for_game",
+                        "message": "Esperando a ETS2/ATS..."
+                    }))
+                    await asyncio.sleep(2)
+                    continue
+                else:
+                    logger.info("🚀 ¡Conexión establecida con la telemetría del juego!")
 
-            # Enviamos el paquete de datos en formato JSON
-            await websocket.send(json.dumps(data_to_send))
+            # Obtener el paquete completo de datos reales
+            data = reader.get_data()
+            
+            if data:
+                # Añadimos un estado de conexión para la UI
+                data["status"] = "connected"
+                await websocket.send(json.dumps(data))
+            else:
+                # Si get_data devuelve None, algo falló en la lectura (ej. juego cerrado)
+                logger.warning("⚠️ Perdiendo sincronización con el juego...")
+                await asyncio.sleep(1)
 
-            # Intervalo de envío sincronizado con la app (aprox. 10Hz)
-            await asyncio.sleep(0.1)
+            # Frecuencia de actualización: ~20Hz (50ms)
+            # Suficiente para que las agujas se vean fluidas pero sin saturar la red.
+            await asyncio.sleep(0.05)
+
     except websockets.exceptions.ConnectionClosed:
-        logger.warning(f"❌ Cliente desconectado: {websocket.remote_address}")
+        logger.warning(f"❌ Dispositivo desconectado: {websocket.remote_address}")
     except Exception as e:
-        logger.error(f"⚠️ Error en la conexión: {e}")
+        logger.error(f"⚠️ Error inesperado en el bridge: {e}")
 
 async def main():
     """
-    Inicia el servidor de WebSockets y la tarea de simulación.
+    Inicia el servidor WebSocket en todas las interfaces de red locales.
     """
-    # Iniciamos la simulación en segundo plano
-    asyncio.create_task(update_simulation())
-
-    # Iniciamos el servidor en el puerto 8080
-    async with websockets.serve(send_telemetry, "0.0.0.0", 8080):
-        logger.info("🚛 Servidor de Telemetría TruckPadDeck iniciado en el puerto 8080")
-        logger.info("📡 Esperando conexiones de la aplicación móvil...")
+    async with websockets.serve(telemetry_bridge, "0.0.0.0", 8080):
+        logger.info("🚛 Servidor de Telemetría TruckPadDeck REAL iniciado en el puerto 8080")
+        logger.info("📡 Escuchando en todas las interfaces de red locales...")
+        # Mantiene el bucle de eventos activo indefinidamente
         await asyncio.get_running_loop().create_future()
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
+        reader.close()
         logger.info("🛑 Servidor detenido por el usuario.")
