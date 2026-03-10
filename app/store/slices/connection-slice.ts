@@ -1,5 +1,5 @@
-import { StateCreator } from 'zustand';
-import { ConnectionState, RootStore } from '../types';
+import {StateCreator} from 'zustand';
+import {ConnectionState, RootStore} from '../types';
 
 /**
  * Slice encargado de gestionar la configuración y el estado de la conexión.
@@ -10,9 +10,14 @@ import { ConnectionState, RootStore } from '../types';
  * @param set Función para actualizar el estado global.
  * @returns Objeto con el estado inicial y las acciones de conexión.
  */
-export const createConnectionSlice: StateCreator<RootStore, [], [], ConnectionState> = (set) => ({
-  serverIp: '192.168.100.44', // IP inicial (mock)
+export const createConnectionSlice: StateCreator<
+  RootStore,
+  [],
+  [],
+  ConnectionState
+> = (set) => ({
+  serverIp: '192.168.100.44', // TODO: IP inicial (mock) para pruebas, se puede cambiar dinámicamente a futuro
   status: 'disconnected',
-  setServerIp: (ip) => set(() => ({ serverIp: ip })),
-  setConnectionStatus: (status) => set(() => ({ status })),
+  setServerIp: (ip) => set(() => ({serverIp: ip})),
+  setConnectionStatus: (status) => set(() => ({status})),
 });
