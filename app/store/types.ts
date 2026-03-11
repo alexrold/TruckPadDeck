@@ -4,7 +4,10 @@ import { SCSTelemetry } from '../constants/scs-telemetry-types';
  * Interfaz que define el estado relacionado con los datos de telemetría del camión.
  */
 export interface TelemetryState {
-  /** Datos actuales de telemetría provenientes del simulador. */
+  /** 
+   * Datos actuales de telemetría provenientes del simulador.
+   * Ahora incluye información detallada de luces, trabajo y navegación.
+   */
   telemetry: SCSTelemetry | null;
   /** Actualiza el estado global con nuevos datos de telemetría. */
   setTelemetry: (data: SCSTelemetry) => void;
@@ -12,8 +15,11 @@ export interface TelemetryState {
   resetTelemetry: () => void;
 }
 
-/** Posibles estados de la conexión WebSocket. */
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+/** 
+ * Posibles estados de la conexión WebSocket.
+ * 'waiting_for_game' indica que el servidor está activo pero el juego no.
+ */
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error' | 'waiting_for_game';
 
 /**
  * Interfaz que define el estado de la conexión con el servidor de telemetría.
