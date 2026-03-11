@@ -191,6 +191,8 @@ class TruckTelemetryReader:
                 },
                 "job": {
                     "cargo": self._read_string(2300 + (5 * 64)),  # String en Zona 9
+                    "city_src": self._read_string(2300 + (11 * 64)),
+                    "city_dst": self._read_string(2300 + (7 * 64)),
                     "truck_name": self._read_string(2300 + (3 * 64)),
                     "on_job": special_events[0],
                     "trailer_attached": trailer_attached
