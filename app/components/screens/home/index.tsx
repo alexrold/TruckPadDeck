@@ -5,6 +5,7 @@ import { useColorScheme } from '../../../hooks/use-color-scheme';
 
 /**
  * Pantalla principal que muestra el dashboard detallado de telemetría.
+ * Actualizada para SCSTelemetry Revision 12.
  */
 export default function ScreenHome() {
   const telemetry = useStore((state) => state.telemetry);
@@ -18,9 +19,14 @@ export default function ScreenHome() {
     <View style={styles.container}>
       {/* Barra de Estado Superior */}
       <View style={styles.statusBar}>
-        <Text style={styles.statusText}>
-          {status === 'connected' ? '🟢 CONECTADO' : status === 'waiting_for_game' ? '🟡 ESPERANDO JUEGO' : '🔴 DESCONECTADO'}
-        </Text>
+        <View>
+          <Text style={styles.statusText}>
+            {status === 'connected' ? '🟢 CONECTADO' : status === 'waiting_for_game' ? '🟡 ESPERANDO JUEGO' : '🔴 DESCONECTADO'}
+          </Text>
+          {telemetry?.paused && (
+            <Text style={styles.pausedText}>⏸️ JUEGO EN PAUSA</Text>
+          )}
+        </View>
         {telemetry?.job.truck_name && (
           <Text style={styles.truckText}>{telemetry.job.truck_name}</Text>
         )}
@@ -33,17 +39,31 @@ export default function ScreenHome() {
             <View style={styles.gauge}>
               <Text style={styles.speedValue}>{Math.round(telemetry.truck.speed)}</Text>
               <Text style={styles.gaugeUnit}>km/h</Text>
+              {telemetry.navigation.speed_limit > 0 && (
+                <View style={styles.speedLimitBadge}>
+                  <Text style={styles.speedLimitText}>{telemetry.navigation.speed_limit}</Text>
+                </View>
+              )}
             </View>
             <View style={styles.gauge}>
               <Text style={styles.rpmValue}>{telemetry.truck.rpm}</Text>
               <Text style={styles.gaugeUnit}>RPM</Text>
+              <Text style={styles.rpmMaxText}>MAX: {telemetry.truck.rpm_max}</Text>
             </View>
           </View>
 
           {/* Fila de Marchas y Pedales */}
           <View style={styles.infoRow}>
-            <Text style={styles.gearText}>MARCHA: {telemetry.truck.gear}</Text>
-            <Text style={styles.fuelText}>⛽ {Math.round(telemetry.truck.fuel)} L</Text>
+            <View style={styles.gearContainer}>
+              <Text style={styles.gearLabel}>MARCHA</Text>
+              <Text style={styles.gearValue}>
+                {telemetry.truck.gear_dashboard > 0 ? telemetry.truck.gear_dashboard : telemetry.truck.gear === 0 ? 'N' : 'R'}
+              </Text>
+            </View>
+            <View style={styles.fuelContainer}>
+              <Text style={styles.fuelText}>⛽ {Math.round(telemetry.truck.fuel.amount)} L</Text>
+              <Text style={styles.fuelRangeText}>{Math.round(telemetry.truck.fuel.range)} km restantes</Text>
+            </View>
           </View>
 
           {/* Indicadores de Luces */}
@@ -51,14 +71,20 @@ export default function ScreenHome() {
             <Text style={[styles.lightIcon, telemetry.lights.blinker_left && styles.lightOn]}>⬅️</Text>
             <Text style={[styles.lightIcon, telemetry.lights.parking_brake && styles.lightWarning]}>🅿️</Text>
             <Text style={[styles.lightIcon, telemetry.lights.beam_high && styles.lightHigh]}>🔦</Text>
+            <Text style={[styles.lightIcon, telemetry.lights.cruise_control && styles.lightOn]}>⏲️</Text>
             <Text style={[styles.lightIcon, telemetry.lights.blinker_right && styles.lightOn]}>➡️</Text>
           </View>
 
           {/* Información del Trabajo */}
-          {telemetry.job.cargo !== "Sin carga" && (
+          {telemetry.job.on_job && (
             <View style={styles.jobCard}>
               <Text style={styles.cargoText}>📦 {telemetry.job.cargo}</Text>
-              <Text style={styles.routeText}>{telemetry.job.city_src} ➔ {telemetry.job.city_dst}</Text>
+              <Text style={styles.routeText}>
+                {telemetry.job.city_src} ➔ {telemetry.job.city_dst}
+              </Text>
+              <Text style={styles.navigationText}>
+                🏁 {Math.round(telemetry.navigation.route_distance / 1000)} km | ⏳ {Math.round(telemetry.navigation.route_time)} min
+              </Text>
             </View>
           )}
 
@@ -94,6 +120,12 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  pausedText: {
+    color: '#f00',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginTop: 2,
+  },
   truckText: {
     color: '#888',
     fontSize: 12,
@@ -109,15 +141,39 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
   },
   gauge: {
     alignItems: 'center',
+    position: 'relative',
   },
   speedValue: {
     fontSize: 80,
     color: isDark ? '#fff' : '#000',
     fontWeight: '900',
   },
+  speedLimitBadge: {
+    position: 'absolute',
+    top: 0,
+    right: -30,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    borderWidth: 4,
+    borderColor: '#f00',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  speedLimitText: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   rpmValue: {
     fontSize: 40,
     color: '#888',
+  },
+  rpmMaxText: {
+    fontSize: 10,
+    color: '#f00',
+    marginTop: 5,
   },
   gaugeUnit: {
     color: '#666',
@@ -126,17 +182,33 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
-    gap: 20,
+    gap: 40,
     marginBottom: 20,
+    alignItems: 'center',
   },
-  gearText: {
-    fontSize: 24,
+  gearContainer: {
+    alignItems: 'center',
+  },
+  gearLabel: {
+    fontSize: 10,
+    color: '#888',
+    marginBottom: -5,
+  },
+  gearValue: {
+    fontSize: 36,
     color: '#f00',
     fontWeight: 'bold',
+  },
+  fuelContainer: {
+    alignItems: 'flex-start',
   },
   fuelText: {
     fontSize: 24,
     color: '#0a0',
+  },
+  fuelRangeText: {
+    fontSize: 12,
+    color: '#666',
   },
   lightsContainer: {
     flexDirection: 'row',
@@ -148,20 +220,18 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
   },
   lightIcon: {
     fontSize: 24,
-    opacity: 0.2,
+    opacity: 0.1,
   },
   lightOn: { opacity: 1 },
   lightWarning: { opacity: 1, color: '#f00' },
   lightHigh: { opacity: 1, color: '#00f' },
   jobCard: {
-    backgroundColor: isDark ? '#333' : '#fff',
+    backgroundColor: isDark ? '#1a1a1a' : '#fff',
     padding: 20,
     borderRadius: 20,
     width: '100%',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: isDark ? '#333' : '#eee',
   },
   cargoText: {
     fontSize: 18,
@@ -171,7 +241,13 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
   },
   routeText: {
     fontSize: 14,
-    color: '#888',
+    color: '#aaa',
+    marginBottom: 10,
+  },
+  navigationText: {
+    fontSize: 12,
+    color: '#08f',
+    fontWeight: 'bold',
   },
   odometerText: {
     marginTop: 20,
