@@ -1,27 +1,29 @@
 # Notas de Desarrollo - TruckPadDeck
 
-**Fecha:** 11 de Marzo de 2026
-**Estado:** Integración de Telemetría (Backend completado, Frontend en progreso)
+**Fecha:** 12 de Marzo de 2026
+**Estado:** Servidor Modularizado (Backend v1.2) - Frontend en Reestructuración
 
 ## 🚀 Logros Recientes
-1.  **Backend (Python):** 
-    - Actualizado `telemetry_reader.py` para soportar **SCS SDK Plugin Revision 12**.
-    - Mapeo completo de memoria: Datos de camión, fluidos, daños, navegación y eventos.
-    - Añadidos `city_src` y `city_dst` al objeto JSON.
-    - Documentación técnica exhaustiva añadida al código.
-2.  **Frontend (Expo):**
-    - Sincronizado `scs-telemetry-types.ts` con la nueva estructura del servidor.
-    - Refactorizada pantalla `Home` para evitar errores de compilación y mostrar nuevos datos (Límite de velocidad, ETA, Combustible restante).
+1.  **Arquitectura Modular (Server):** 
+    - Separada la lógica en `network/discovery.py`, `core/auth.py` y `core/bridge.py`.
+    - Implementada negociación dinámica de puertos (Fallback al puerto 0 si 42424 está ocupado).
+    - Documentación técnica exhaustiva añadida a cada módulo.
+2.  **Seguridad:** 
+    - Aislamiento del `SecurityManager` para gestión de PIN y validación de sesiones.
+3.  **Saneamiento de Git:**
+    - Rama `main` consolidada como punto de ruptura.
+    - App antigua movida a `old-app/` e ignorada para iniciar nueva estructura limpia.
 
-## 📍 Próximos Pasos (Para la siguiente sesión)
-1.  **Descubrimiento de IP:** Eliminar la IP hardcodeada en la App. Investigar mDNS (Zeroconf) o un simple UDP Broadcast del servidor para que la tablet encuentre el PC automáticamente en la red local.
-2.  **Validación de Datos:** Crear una pantalla de "Debug" o extender la Home para visualizar *todos* los campos raw (temperaturas, daños específicos, presión de aire) y asegurar que coinciden con el juego.
-3.  **Estilizado:** Configurar **TailwindCSS (NativeWind)** para mejorar la UI.
-4.  **Nuevas Pantallas:** Diseñar pantallas específicas (Dashboard de Ingeniero con temperaturas, Dashboard de Logística con mapa/trabajo).
+## 📍 Próximos Pasos (Prioridades)
+1.  **Normalización de Unidades (CRÍTICO):** Investigar la detección automática de Metric vs Imperial en el SDK.
+    - El servidor debe proveer datos normalizados o informar a la App de la preferencia del usuario (Km/h vs Mph, Litros vs Galones).
+    - Verificar flags de configuración en la Zona 2 (UI/Config) de la memoria compartida.
+2.  **Nueva Estructura App:** Iniciar `app/` desde cero con una arquitectura de carpetas limpia y coherente.
+3.  **Modularización Frontend:** Separar la lógica de WebSocket del UI para permitir múltiples dashboards (Ingeniero, Logística, Dashboard Clásico).
 
-## ⚠️ Ramas Activas
-- `feature/server-telemetry-integration`: Estable (Backend).
-- `feature/frontend-expo`: En desarrollo (Frontend). **(Rama actual)**.
+## ⚠️ Estado de Ramas
+- `main`: Estable y Modularizada. (Norte actual).
+- `old-app/`: Referencia histórica (Ignorada).
 
 ## Comandos Útiles
 - Iniciar servidor: `cd server && python main.py`

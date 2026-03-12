@@ -1,180 +1,95 @@
 #!/usr/bin/env python3
 import asyncio
-import websockets
-import json
 import logging
-import socket
-import random
-from zeroconf.asyncio import AsyncServiceInfo, AsyncZeroconf
-from telemetry_reader import TruckTelemetryReader
+import sys
+import os
+import websockets
 
-# Configuración de logs profesional
+# Asegurar que el directorio del servidor esté en el path para importaciones modulares
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
+from network.discovery import get_local_ip, udp_beacon, MDNSAdvertiser
+from core.auth import SecurityManager
+from core.bridge import TelemetryBridge
+
+# Configuración de registro de eventos (Logging)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Silenciar logs ruidosos de librerías externas
+# Restringir logs ruidosos de la librería websockets
 logging.getLogger('websockets.server').setLevel(logging.ERROR)
 
-# Instancia global del lector de telemetría
-reader = TruckTelemetryReader()
-
-# Generar PIN de seguridad único para esta sesión
-SECRET_PIN = "".join([str(random.randint(0, 9)) for _ in range(6)])
-
-def get_local_ip():
-    """ Obtiene la dirección IP local de la interfaz de red activa. """
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(('8.8.8.8', 1))
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
-    finally:
-        s.close()
-    return ip
-
-async def udp_beacon(local_ip, port_callback):
-    """ Envía un paquete UDP Broadcast cada 3 segundos. """
-    broadcast_ip = "255.255.255.255"
-    beacon_port = 5555
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    
-    try:
-        while True:
-            current_port = port_callback()
-            if current_port:
-                beacon_data = json.dumps({
-                    "type": "truckpaddeck_discovery",
-                    "server_name": socket.gethostname(),
-                    "ip": local_ip,
-                    "port": current_port
-                }).encode('utf-8')
-                sock.sendto(beacon_data, (broadcast_ip, beacon_port))
-            await asyncio.sleep(3)
-    except Exception as e:
-        logger.error(f"⚠️ Error en el faro UDP: {e}")
-    finally:
-        sock.close()
-
-async def telemetry_bridge(websocket):
-    """ Gestiona la conexión WebSocket con seguridad por PIN. """
-    remote_addr = websocket.remote_address[0]
-    logger.info(f"🌐 Nuevo intento de conexión desde: {remote_addr}")
-
-    try:
-        # 1. Fase de Autenticación
-        auth_payload = await websocket.recv()
-        try:
-            auth_data = json.loads(auth_payload)
-            if auth_data.get("type") == "auth" and str(auth_data.get("pin")) == SECRET_PIN:
-                logger.info(f"✅ Dispositivo {remote_addr} autenticado con éxito.")
-                await websocket.send(json.dumps({
-                    "status": "auth_ok",
-                    "message": "¡Conexión segura establecida!"
-                }))
-            else:
-                logger.warning(f"🚫 PIN incorrecto desde {remote_addr}.")
-                await websocket.send(json.dumps({
-                    "status": "auth_failed",
-                    "message": "PIN de seguridad incorrecto."
-                }))
-                await websocket.close()
-                return
-        except (json.JSONDecodeError, KeyError):
-            logger.warning(f"⚠️ Formato de autenticación inválido.")
-            await websocket.close()
-            return
-
-        # 2. Fase de Telemetría
-        while True:
-            if not reader.is_connected:
-                if not reader.connect():
-                    await websocket.send(json.dumps({
-                        "status": "waiting_for_game",
-                        "message": "Conectado al PC. Iniciando simulador..."
-                    }))
-                    await asyncio.sleep(2)
-                    continue
-                else:
-                    logger.info("🚀 Telemetría del juego detectada. Enviando datos...")
-
-            data = reader.get_data()
-            if data:
-                data["status"] = "connected"
-                await websocket.send(json.dumps(data))
-            else:
-                await asyncio.sleep(1)
-
-            await asyncio.sleep(0.05)
-
-    except websockets.exceptions.ConnectionClosed:
-        logger.warning(f"❌ Dispositivo desconectado: {remote_addr}")
-    except Exception as e:
-        logger.error(f"⚠️ Error inesperado en el bridge: {e}")
-
 async def main():
-    """ Inicia el ecosistema del servidor TruckPadDeck. """
+    """
+    Orquestador principal del servidor TruckPadDeck.
+    Gestiona el ciclo de vida de los servicios de red, seguridad y telemetría.
+    """
+    # Identificamos la IP local para que la App sepa a qué dirección apuntar.
     local_ip = get_local_ip()
+    # server_port se inicializa en None; su valor final dependerá de la negociación con Windows.
     server_port = None
 
+    # Inicialización de componentes core (Seguridad y Puente de datos).
+    security_mgr = SecurityManager()
+    bridge_mgr = TelemetryBridge(security_mgr)
+
+    # ... Interfaz Visual ...
+    print("\n" + "═"*45)
+    print(f"  TRUCK PAD DECK SERVER v1.2")
+    print(f"  IP LOCAL: {local_ip}")
+    print(f"  PIN DE SEGURIDAD: {security_mgr.get_pin()}")
+    print("═"*45 + "\n")
+
+    # Definimos una función de retorno (callback). 
+    # Permite que el proceso UDP consulte el puerto en tiempo real cuando este sea asignado.
     def get_current_port():
         return server_port
 
-    # Interfaz Visual Inicial
-    print("\n" + "═"*45)
-    print(f"  🚛 TRUCK PAD DECK SERVER v1.1")
-    print(f"  🔐 PIN DE SEGURIDAD: {SECRET_PIN}")
-    print("═"*45 + "\n")
-    
-    # 1. Iniciar Faro UDP (Descubrimiento rápido)
+    # Lanzamos el "Faro UDP" en segundo plano. 
+    # Su única misión es anunciar la presencia del servidor en la red local (Puerto 5555).
     asyncio.create_task(udp_beacon(local_ip, get_current_port))
-    logger.info(f"📡 Faro UDP: Activo en puerto 5555")
+    logger.info(f"Faro de descubrimiento activo (Puerto UDP 5555)")
 
-    # 2. Iniciar Servidor WebSocket (Datos)
+    # NEGOCIACIÓN DEL PUERTO WEBSOCKET:
+    # Intentamos usar el puerto 42424 por defecto.
     preferred_port = 42424
     try:
-        try:
-            server = await websockets.serve(telemetry_bridge, "0.0.0.0", preferred_port)
-            server_port = preferred_port
-        except OSError:
-            logger.warning(f"⚠️ Puerto {preferred_port} ocupado. Buscando puerto libre...")
-            server = await websockets.serve(telemetry_bridge, "0.0.0.0", 0)
-            server_port = server.sockets[0].getsockname()[1]
+        # Si el puerto está libre, iniciamos el servicio de datos aquí.
+        server = await websockets.serve(bridge_mgr.handle_connection, "0.0.0.0", preferred_port)
+        server_port = preferred_port
+    except OSError:
+        # FALLBACK: Si 42424 está ocupado, solicitamos al Sistema Operativo un puerto libre aleatorio (Puerto 0).
+        logger.warning(f"Puerto {preferred_port} occupied. Negociando puerto dinámico con Windows...")
+        server = await websockets.serve(bridge_mgr.handle_connection, "0.0.0.0", 0)
+        # Extraemos el número de puerto que Windows nos asignó finalmente.
+        server_port = server.sockets[0].getsockname()[1]
 
-        logger.info(f"🚀 WebSocket: Escuchando en {local_ip}:{server_port}")
-        
-        # 3. Iniciar mDNS (Anuncio de red)
-        desc = {'version': '1.1.0', 'server': 'TruckPadDeck'}
-        info = AsyncServiceInfo(
-            "_truckpaddeck._tcp.local.",
-            "TruckPadDeck._truckpaddeck._tcp.local.",
-            addresses=[socket.inet_aton(local_ip)],
-            port=server_port,
-            properties=desc,
-            server="truckpaddeck.local.",
-        )
-        aiozc = AsyncZeroconf()
-        await aiozc.async_register_service(info)
-        logger.info(f"🌐 Anuncio mDNS: Registrado como 'TruckPadDeck.local'")
+    # En este punto, server_port ya tiene un valor numérico y el Faro UDP empezará a anunciarlo.
+    logger.info(f"Servidor de datos (WebSocket) operativo en {local_ip}:{server_port}")
 
-        logger.info("✅ Todos los servicios están operativos. Esperando conexión de App móvil...")
-        
-        try:
-            await asyncio.get_running_loop().create_future()
-        finally:
-            await aiozc.async_unregister_service(info)
-            await aiozc.close()
+    # Registro del servicio vía mDNS (Zeroconf) para redundancia
+    mdns = MDNSAdvertiser(local_ip, server_port)
+    await mdns.start()
 
+    logger.info("Sistema operativo y a la espera de conexiones de la App.")
+
+    # Mantener el bucle de eventos activo
+    try:
+        await asyncio.get_running_loop().create_future()
     except Exception as e:
-        logger.error(f"❌ Error crítico en el inicio: {e}")
+        logger.error(f"Error crítico durante la ejecución del servidor: {e}")
+    finally:
+        await mdns.stop()
+        bridge_mgr.close_reader()
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        reader.close()
-        logger.info("🛑 Servidor detenido por el usuario.")
+        logger.info("Servidor detenido manualmente por el usuario.")
+        sys.exit(0)

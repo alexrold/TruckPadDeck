@@ -40,15 +40,19 @@ class TruckTelemetryReader:
             
             if plugin_revid == 12:
                 self.is_connected = True
-                logger.info(f"🚀 ¡CONEXIÓN ESTABLECIDA CON {self.mmf_name} (Revision {plugin_revid})!")
+                logger.info(f"🚀 Conexión establecida con el simulador (Revision {plugin_revid})")
                 return True
             elif plugin_revid == 0:
-                # Revisión 0 significa que el plugin está listo pero el juego no.
-                # Es un estado normal de espera, no un warning.
+                # El juego está en el menú principal o cargando; el plugin aún no tiene datos.
                 self.is_connected = False
                 return False
             else:
-                logger.warning(f"⚠️ Revisión inesperada: {plugin_revid}. Se requiere Revision 12.")
+                logger.warning(
+                    f"⚠️ Versión del Plugin incompatible (Detectada: v{plugin_revid}). "
+                    f"Se requiere estrictamente 'SCS SDK Plugin v1.12.1 (Revision 12)'. "
+                    f"Verifica el archivo 'scs-telemetry.dll' en la carpeta de plugins del simulador "
+                    f"(ej: ...\\bin\\win_x64\\plugins\\)."
+                )
                 self.close()
                 return False
         except FileNotFoundError:
@@ -71,7 +75,10 @@ class TruckTelemetryReader:
     def get_data(self):
         """ 
         Captura y procesa una instantánea de la telemetría.
-        Mapea los bytes crudos a un diccionario amigable para JSON/Frontend.
+        Mapea los bytes crudos a un diccionario estructurado.
+        
+        NOTA: Las unidades se procesan actualmente en Sistema Internacional (SI).
+        TODO: Implementar detección de preferencias de usuario (Métrico/Imperial).
         """
         if not self.shmem or not self.is_connected:
             return None
