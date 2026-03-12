@@ -17,6 +17,9 @@ bun.lockb
 
 # VSCode
 .vscode/
+old-app/
+node_modules/
+**/node_modules/
 
 # Windows
 Thumbs.db
@@ -27,3 +30,4 @@ Desktop.ini
 *.exe
 *.obj
 *.pdb
+scs-sdk-*

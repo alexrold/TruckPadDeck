@@ -1,3 +1,4 @@
 websockets==13.1
 pyautogui==0.9.54
 python-dotenv==1.0.1
+zeroconf==0.132.0
