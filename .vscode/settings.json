@@ -1,0 +1,29 @@
+{
+  "python.analysis.extraPaths": ["./server"],
+  "python.autoComplete.extraPaths": ["./server"],
+  "cSpell.words": [
+    "adblue",
+    "corrutina",
+    "Inicialización",
+    "mdns",
+    "MDNS",
+    "Orquestador",
+    "Reconexión",
+    "revid",
+    "shmem",
+    "telemetría"
+  ],
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#551913",
+    "titleBar.activeBackground": "#77231B",
+    "titleBar.activeForeground": "#FEFCFC",
+    "titleBar.inactiveBackground": "#551913",
+    "titleBar.inactiveForeground": "#FEFCFC",
+    "statusBar.background": "#551913",
+    "statusBar.foreground": "#FEFCFC",
+    "statusBar.debuggingBackground": "#551913",
+    "statusBar.debuggingForeground": "#FEFCFC",
+    "statusBar.noFolderBackground": "#551913",
+    "statusBar.noFolderForeground": "#FEFCFC"
+  }
+}
