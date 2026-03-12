@@ -4,27 +4,23 @@ import { SCSTelemetry } from '../constants/scs-telemetry-types';
 
 /**
  * Hook que gestiona la conexión WebSocket con el servidor de telemetría de SCS.
- * 
- * Se encarga de abrir la conexión, escuchar los mensajes entrantes y 
- * sincronizar los datos recibidos con el store global de Zustand.
- * También monitorea el estado de la conexión (conectado, error, cerrado).
  *
- * @example
- * // Solo invocar una vez en el componente raíz o layout principal
- * useSCSTelemetry();
- * 
- * @returns void - Los datos se acceden a través de `useStore`.
+ * Implementa la fase de autenticación por PIN antes de recibir datos.
  */
 export function useSCSTelemetry() {
-  // Obtenemos las acciones y la configuración del store global
   const serverIp = useStore((state) => state.serverIp);
+  const serverPort = useStore((state) => state.serverPort);
+  const serverPin = useStore((state) => state.serverPin);
   const setTelemetry = useStore((state) => state.setTelemetry);
   const setConnectionStatus = useStore((state) => state.setConnectionStatus);
+  const setAuthStatus = useStore((state) => state.setAuthStatus);
   const resetTelemetry = useStore((state) => state.resetTelemetry);
 
   useEffect(() => {
-    // Definimos la URL del servidor basada en la IP del store
-    const socketUrl = `ws://${serverIp}:8080`;
+    // Si no tenemos IP, no intentamos conectar
+    if (!serverIp) return;
+
+    const socketUrl = `ws://${serverIp}:${serverPort}`;
     let ws: WebSocket | null = null;
 
     try {
@@ -32,16 +28,42 @@ export function useSCSTelemetry() {
       ws = new WebSocket(socketUrl);
 
       ws.onopen = () => {
-        console.log(`✅ WebSocket conectado a: ${socketUrl}`);
-        setConnectionStatus('connected');
+        console.log(`✅ Conectado a ${socketUrl}. Enviando PIN...`);
+        // Fase 1: Enviar PIN de autenticación
+        ws?.send(JSON.stringify({
+          type: 'auth',
+          pin: serverPin
+        }));
       };
 
       ws.onmessage = (event) => {
         try {
-          const telemetry: SCSTelemetry = JSON.parse(event.data);
-          setTelemetry(telemetry);
+          const data = JSON.parse(event.data);
+          
+          // Manejar estados de autenticación
+          if (data.status === 'auth_ok') {
+            console.log('✅ Autenticación exitosa.');
+            setAuthStatus('authenticated');
+            setConnectionStatus('connected');
+            return;
+          }
+          
+          if (data.status === 'auth_failed') {
+            console.error('❌ Error de autenticación: PIN incorrecto.');
+            setAuthStatus('denied');
+            ws?.close();
+            return;
+          }
+
+          // Si estamos autenticados, procesar telemetría
+          if (data.status === 'connected' || data.status === 'waiting_for_game') {
+            setConnectionStatus(data.status);
+            if (data.truck) {
+                setTelemetry(data as SCSTelemetry);
+            }
+          }
         } catch (parseError) {
-          console.error('❌ Error parseando telemetría:', parseError);
+          console.error('❌ Error parseando mensaje del servidor:', parseError);
         }
       };
 
@@ -53,6 +75,7 @@ export function useSCSTelemetry() {
       ws.onclose = () => {
         console.log('❌ WebSocket cerrado');
         setConnectionStatus('disconnected');
+        setAuthStatus('unauthenticated');
         resetTelemetry();
       };
     } catch (error) {
@@ -60,11 +83,10 @@ export function useSCSTelemetry() {
       setConnectionStatus('error');
     }
 
-    // Limpieza al desmontar el hook o cambiar la IP
     return () => {
       if (ws) {
         ws.close();
       }
     };
-  }, [serverIp, setTelemetry, setConnectionStatus, resetTelemetry]);
+  }, [serverIp, serverPort, serverPin, setTelemetry, setConnectionStatus, setAuthStatus, resetTelemetry]);
 }

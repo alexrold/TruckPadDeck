@@ -7,6 +7,34 @@ import { useColorScheme } from '../../../hooks/use-color-scheme';
  * Pantalla principal que muestra el dashboard detallado de telemetría.
  * Actualizada para SCSTelemetry Revision 12.
  */
+/**
+ * Componente auxiliar para mostrar el nivel de daño de un sistema del camión.
+ */
+function DamageIndicator({ label, value }: { label: string; value: number }) {
+  const isHighDamage = value > 15;
+  const isCriticalDamage = value > 40;
+
+  return (
+    <View style={styles_helper.damageItem}>
+      <View style={[
+        styles_helper.damageBar, 
+        { height: `${Math.max(10, value)}%`, backgroundColor: isCriticalDamage ? '#f00' : isHighDamage ? '#fa0' : '#0a0' }
+      ]} />
+      <Text style={styles_helper.damageLabel}>{label}</Text>
+      <Text style={[styles_helper.damageValue, isHighDamage && { color: isCriticalDamage ? '#f00' : '#fa0' }]}>
+        {Math.round(value)}%
+      </Text>
+    </View>
+  );
+}
+
+const styles_helper = StyleSheet.create({
+  damageItem: { alignItems: 'center', flex: 1 },
+  damageBar: { width: 4, borderRadius: 2, marginBottom: 5, minHeight: 4 },
+  damageLabel: { fontSize: 8, color: '#888', textTransform: 'uppercase' },
+  damageValue: { fontSize: 10, fontWeight: 'bold', color: '#666' },
+});
+
 export default function ScreenHome() {
   const telemetry = useStore((state) => state.telemetry);
   const status = useStore((state) => state.status);
@@ -73,6 +101,42 @@ export default function ScreenHome() {
             <Text style={[styles.lightIcon, telemetry.lights.beam_high && styles.lightHigh]}>🔦</Text>
             <Text style={[styles.lightIcon, telemetry.lights.cruise_control && styles.lightOn]}>⏲️</Text>
             <Text style={[styles.lightIcon, telemetry.lights.blinker_right && styles.lightOn]}>➡️</Text>
+          </View>
+
+          {/* Sección de Fluidos y Estado del Motor */}
+          <View style={styles.mechanicsGrid}>
+            <View style={styles.mechanicItem}>
+              <Text style={styles.mechanicIcon}>🌡️</Text>
+              <Text style={styles.mechanicValue}>{Math.round(telemetry.truck.fluids.water_temperature)}°C</Text>
+              <Text style={styles.mechanicLabel}>AGUA</Text>
+            </View>
+            <View style={styles.mechanicItem}>
+              <Text style={styles.mechanicIcon}>🛢️</Text>
+              <Text style={styles.mechanicValue}>{Math.round(telemetry.truck.fluids.oil_temperature)}°C</Text>
+              <Text style={styles.mechanicLabel}>ACEITE</Text>
+            </View>
+            <View style={styles.mechanicItem}>
+              <Text style={styles.mechanicIcon}>💨</Text>
+              <Text style={styles.mechanicValue}>{telemetry.truck.fluids.air_pressure.toFixed(1)}</Text>
+              <Text style={styles.mechanicLabel}>AIRE</Text>
+            </View>
+            <View style={styles.mechanicItem}>
+              <Text style={styles.mechanicIcon}>🔋</Text>
+              <Text style={styles.mechanicValue}>{telemetry.truck.fluids.battery_voltage.toFixed(1)}V</Text>
+              <Text style={styles.mechanicLabel}>BATERÍA</Text>
+            </View>
+          </View>
+
+          {/* Sección de Daños */}
+          <View style={styles.damageContainer}>
+            <Text style={styles.sectionTitle}>ESTADO DEL VEHÍCULO</Text>
+            <View style={styles.damageRow}>
+              <DamageIndicator label="Motor" value={telemetry.truck.damage.engine} />
+              <DamageIndicator label="Transm." value={telemetry.truck.damage.transmission} />
+              <DamageIndicator label="Cabina" value={telemetry.truck.damage.cabin} />
+              <DamageIndicator label="Chasis" value={telemetry.truck.damage.chassis} />
+              <DamageIndicator label="Ruedas" value={telemetry.truck.damage.wheels} />
+            </View>
           </View>
 
           {/* Información del Trabajo */}
@@ -253,6 +317,49 @@ const createStyles = (isDark: boolean) => StyleSheet.create({
     marginTop: 20,
     fontSize: 12,
     color: '#666',
+  },
+  mechanicsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 20,
+    backgroundColor: isDark ? '#1a1a1a' : '#fff',
+    padding: 15,
+    borderRadius: 15,
+  },
+  mechanicItem: {
+    alignItems: 'center',
+  },
+  mechanicIcon: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  mechanicValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: isDark ? '#fff' : '#000',
+  },
+  mechanicLabel: {
+    fontSize: 9,
+    color: '#888',
+  },
+  damageContainer: {
+    width: '100%',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#888',
+    marginBottom: 10,
+    textAlign: 'center',
+    letterSpacing: 2,
+  },
+  damageRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    height: 60,
   },
   waitingContainer: {
     alignItems: 'center',

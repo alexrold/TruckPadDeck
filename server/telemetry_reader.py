@@ -42,6 +42,11 @@ class TruckTelemetryReader:
                 self.is_connected = True
                 logger.info(f"🚀 ¡CONEXIÓN ESTABLECIDA CON {self.mmf_name} (Revision {plugin_revid})!")
                 return True
+            elif plugin_revid == 0:
+                # Revisión 0 significa que el plugin está listo pero el juego no.
+                # Es un estado normal de espera, no un warning.
+                self.is_connected = False
+                return False
             else:
                 logger.warning(f"⚠️ Revisión inesperada: {plugin_revid}. Se requiere Revision 12.")
                 self.close()
