@@ -39,8 +39,13 @@ class TruckTelemetryReader:
             plugin_revid = struct.unpack('I', self.shmem.read(4))[0]
             
             if plugin_revid == 12:
+                # Identificar el juego inmediatamente para el log
+                self.shmem.seek(44)
+                game_id = struct.unpack('I', self.shmem.read(4))[0]
+                game_name = "Euro Truck Simulator 2" if game_id == 1 else "American Truck Simulator" if game_id == 2 else "Simulador"
+                
                 self.is_connected = True
-                logger.info(f"🚀 Conexión establecida con el simulador (Revision {plugin_revid})")
+                logger.info(f"🚀 Conexión establecida con {game_name} (Revision {plugin_revid})")
                 return True
             elif plugin_revid == 0:
                 # El juego está en el menú principal o cargando; el plugin aún no tiene datos.
@@ -74,11 +79,8 @@ class TruckTelemetryReader:
 
     def get_data(self):
         """ 
-        Captura y procesa una instantánea de la telemetría.
+        Captura y procesa una snapshot de la telemetría.
         Mapea los bytes crudos a un diccionario estructurado.
-        
-        NOTA: Las unidades se procesan actualmente en Sistema Internacional (SI).
-        TODO: Implementar detección de preferencias de usuario (Métrico/Imperial).
         """
         if not self.shmem or not self.is_connected:
             return None
@@ -91,8 +93,24 @@ class TruckTelemetryReader:
             paused = struct.unpack('?', raw_z1[4:5])[0]     # ¿El juego está en pausa/menú?
 
             # --- ZONA 2: UI/CONFIG (40-499) ---
-            self.shmem.seek(64) # Offset 64: common_ui.time_abs (tiempo total en min)
+            # Leemos metadatos del juego (ID y Versión)
+            self.shmem.seek(44)
+            raw_z2_meta = self.shmem.read(20) # De 44 a 64
+            game_id = struct.unpack('I', raw_z2_meta[0:4])[0]      # Offset 44
+            ver_major = struct.unpack('I', raw_z2_meta[12:16])[0]  # Offset 56
+            ver_minor = struct.unpack('I', raw_z2_meta[16:20])[0]  # Offset 60
+            
+            # Offset 64: common_ui.time_abs (tiempo total en min)
+            self.shmem.seek(64)
             game_time = struct.unpack('I', self.shmem.read(4))[0]
+
+            # Mapeo de Identidad del Juego y Unidades por defecto
+            game_name = "ETS2" if game_id == 1 else "ATS" if game_id == 2 else "Unknown"
+            game_ver = f"{ver_major}.{ver_minor}"
+            
+            # Preferencia de unidades basada en el juego (ETS2: Métrico, ATS: Imperial)
+            # TODO: Refinar con detección de flag real del usuario si está disponible.
+            is_metric = True if game_id == 1 else False
 
             # --- ZONA 3: INTEGERS (500-699) ---
             self.shmem.seek(504) # truck_i: gear (504) y gearDashboard (508)
@@ -134,11 +152,20 @@ class TruckTelemetryReader:
             self.shmem.seek(6082) # Offset 6000 + 82 (attached): ¿Hay remolque conectado?
             trailer_attached = struct.unpack('?', self.shmem.read(1))[0]
 
-            # Construcción del objeto de respuesta con unidades legibles
+            # Construcción del objeto de respuesta con estructura organizada
             return {
                 "sdk_active": sdk_active,
                 "paused": paused,
                 "timestamp": datetime.now().isoformat(),
+                "config": {
+                    "game": game_name,
+                    "version": game_ver,
+                    "units": {
+                        "is_metric": is_metric,
+                        "temperature": "C" if is_metric else "F",
+                        "pressure": "bar" if is_metric else "psi"
+                    }
+                },
                 "game": {
                     "time": game_time,
                     "plugin_version": 12
