@@ -1,26 +1,25 @@
 import { Link, Stack } from 'expo-router';
-
 import { Text, View } from 'react-native';
+import { Container } from '@/components/layout/Container';
 
-import { Container } from '@/components/Container';
-
+/**
+ * Pantalla de Error (Ruta No Encontrada).
+ * 
+ * Se muestra cuando se intenta acceder a una ruta inexistente en Expo Router.
+ */
 export default function NotFoundScreen() {
   return (
-    <View className={styles.container}>
-      <Stack.Screen options={{ title: 'Oops!' }} />
-      <Container>
-        <Text className={styles.title}>{"This screen doesn't exist."}</Text>
-        <Link href="/" className={styles.link}>
-          <Text className={styles.linkText}>Go to home screen!</Text>
+    <Container>
+      <Stack.Screen options={{ title: 'Oops!', headerShown: true }} />
+      <View className="flex-1 items-center justify-center bg-slate-900 p-6">
+        <Text className="text-white text-4xl font-black mb-4">404</Text>
+        <Text className="text-slate-400 text-lg text-center mb-8">
+          Esta ruta no existe en TruckPadDeck.
+        </Text>
+        <Link href="/" className="bg-blue-600 px-8 py-4 rounded-xl shadow-lg">
+          <Text className="text-white font-bold text-lg">Volver al Inicio</Text>
         </Link>
-      </Container>
-    </View>
+      </View>
+    </Container>
   );
 }
-
-const styles = {
-  container: `flex flex-1 bg-white`,
-  title: `text-xl font-bold`,
-  link: `mt-4 pt-4`,
-  linkText: `text-base text-[#2e78b7]`,
-};

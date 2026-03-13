@@ -1,25 +1,14 @@
 import { useEffect } from 'react';
 import dgram from 'react-native-udp';
 import { Buffer } from 'buffer';
-import { useTelemetryStore } from '../store/telemetry-store';
+import { useTelemetryStore } from '@/store/telemetry-store';
 
-/**
- * Puerto estandarizado para el faro (Beacon) de Service Discovery UDP.
- * Debe coincidir con la configuración del servidor Python (server/network/discovery.py).
- */
 const DISCOVERY_PORT = 5555;
 
-/**
- * Hook de Service Discovery (Descubrimiento de Servicios).
- * 
- * Escucha paquetes de difusión (Broadcast) en la red local para identificar 
- * automáticamente la IP y el Puerto del servidor TruckPadDeck.
- */
 export function useDiscovery() {
   const { setServer, setStatus, connectionStatus } = useTelemetryStore();
 
   useEffect(() => {
-    // Solo iniciamos el descubrimiento si el estado es 'idle' o ya estamos en 'discovering'
     if (connectionStatus !== 'idle' && connectionStatus !== 'discovering') return;
 
     let socket: any = null;
@@ -42,7 +31,6 @@ export function useDiscovery() {
             }
           }
         } catch (err) {
-          // Error silencioso al parsear paquetes ajenos al protocolo en la red local
           console.debug('[Discovery] Paquete no reconocido ignorado:', err);
         }
       });

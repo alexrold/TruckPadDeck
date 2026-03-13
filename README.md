@@ -1,68 +1,72 @@
 # 🚛 TruckPadDeck
 
-> Control your Euro Truck Simulator 2 from an Android tablet in real time.
+> Panel de Telemetría en Tiempo Real para Euro Truck Simulator 2 y American Truck Simulator.
 
-![Status](https://img.shields.io/badge/status-WIP-yellow)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Android-blue)
+![Status](https://img.shields.io/badge/status-Active-brightgreen)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Android%20%7C%20iOS-blue)
+![Architecture](https://img.shields.io/badge/arch-Modular-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
-## ¿Qué es?
+## 🚀 ¿Qué es TruckPadDeck?
 
-TruckPadDeck convierte tu tablet Android en un panel de control
-para ETS2. Muestra telemetría en tiempo real (velocidad, RPM,
-combustible) y permite ejecutar acciones desde la tablet
-sin tocar el teclado.
+TruckPadDeck es un ecosistema de telemetría que permite convertir cualquier dispositivo móvil en un tablero de instrumentos profesional para **ETS2** y **ATS**. A diferencia de otras soluciones, utiliza un sistema de **Service Discovery** automático y un enlace de baja latencia para una sincronización visual perfecta.
 
 ---
 
-## Arquitectura
+## 🏗️ Arquitectura del Sistema
 
-ETS2 (PC)
-└── scs-sdk-plugin.dll ← lee datos del juego
-└── server.exe ← WebSocket (Python)
-└── App Android ← panel de control (Expo)
+El flujo de datos se divide en tres capas críticas:
 
----
-
-## Requisitos
-
-- Euro Truck Simulator 2 (Steam)
-- Windows 10/11
-- Android 8.0+
-- Misma red WiFi (PC y tablet)
+1.  **Captura (Plugin):** `scs-telemetry.dll` lee la memoria compartida (MMF) del simulador (SCS SDK v12).
+2.  **Puente (Server):** Servidor Python asíncrono que orquesta la seguridad (PIN) y el streaming vía WebSockets a 20Hz.
+3.  **Visualización (Mobile):** Aplicación modular desarrollada en **Expo/React Native** con arquitectura **Feature-First**.
 
 ---
 
-## Estructura del proyecto
+## 📂 Estructura del Proyecto
 
+```text
 TruckPadDeck/
-├── plugin/ ← DLL para ETS2 (basado en RenCloud scs-sdk-plugin)
-├── server/ ← WebSocket server (Python + websockets)
-├── app/ ← App Android (Expo + React Native + NativeWind)
-└── installer/ ← Instalador PC (Inno Setup) — próximamente
+├── server/             # Servidor Python (Asyncio + WebSockets)
+│   ├── network/        # Beacon UDP (Service Discovery) y mDNS
+│   ├── core/           # Lógica de seguridad (PIN) y Telemetry Bridge
+│   └── telemetry_reader.py # Lector de memoria compartida (MMF)
+├── mobile/             # Aplicación Móvil (Expo + TypeScript)
+│   ├── src/
+│   │   ├── store/      # Estado global (Zustand) con mapeo 1:1 de telemetría
+│   │   ├── features/   # Módulos por responsabilidad (Connection, Dashboards)
+│   │   └── components/ # Librería UI (NativeWind v4)
+│   └── app/            # Sistema de rutas (Expo Router)
+├── plugin/             # SCS SDK Plugin (C++) - Revision 12 compatible
+└── docs/               # Notas de desarrollo y especificaciones técnicas
+```
 
 ---
 
-## Estado del proyecto
+## 📡 Protocolos de Comunicación
 
-| Componente | Estado           |
-| ---------- | ---------------- |
-| plugin/    | 🔧 En desarrollo |
-| server/    | 🔧 En desarrollo |
-| app/       | 🔧 En desarrollo |
-| installer/ | ⏳ Pendiente     |
+Para garantizar una experiencia "Plug & Play", el sistema implementa:
 
----
-
-## Créditos
-
-- [RenCloud/scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin)
-  base del plugin de telemetría para ETS2
+- **Service Discovery:** El servidor emite un faro UDP (Beacon) en el puerto `5555`. La App detecta automáticamente la IP y el Puerto.
+- **Seguridad:** Handshake inicial mediante PIN de 4 dígitos generado por el servidor.
+- **Streaming:** Canal WebSocket bidireccional con ráfagas de telemetría a alta frecuencia (50ms de intervalo).
 
 ---
 
-## Autor
+## 🛠️ Requisitos e Instalación
 
-**Ronald Betancourt** — [@alexrold](https://github.com/alexrold)
+1.  **Simulador:** Euro Truck Simulator 2 o American Truck Simulator (Steam).
+2.  **Plugin:** Instalar `scs-telemetry.dll` en la carpeta `plugins/` del juego.
+3.  **Servidor:** Ejecutar `python server/main.py`.
+4.  **App:**
+    1. En una terminal: `cd mobile && bun install && bun run start`
+    2. Vincular el dispositivo mediante el PIN mostrado en la consola del servidor.
+
+---
+
+## 👥 Créditos y Autor
+
+- **Autor:** Ronald Betancourt ([@alexrold](https://github.com/alexrold))
+- **Base del Plugin:** [RenCloud/scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin)
