@@ -25,6 +25,12 @@
 - `main`: Estable y Modularizada. (Norte actual).
 - `old-app/`: Referencia histórica (Ignorada).
 
+## 📝 Resumen de Sesión (12/03/2026) - CONTEXTO PARA IA
+- **Servidor:** Totalmente modularizado. Punto de entrada en `server/main.py`. Lógica dividida en `core/` (Auth y Bridge) y `network/` (Discovery).
+- **Lector de Telemetría:** Sincronizado con SCS SDK Revision 12. Soporta daños detallados, navegación y estados de luces.
+- **Frontend:** La carpeta `app/` ha sido movida a `old-app/`. Se ha eliminado `node_modules` para limpiar. La nueva App se iniciará desde cero en una nueva carpeta `app/` siguiendo una arquitectura de Slices.
+- **Pendiente Inmediato:** Investigar detección de Unidades (Km vs Millas) en el SDK y diseñar el sistema de carpetas para la nueva App Expo.
+
 ## Comandos Útiles
 - Iniciar servidor: `cd server && python main.py`
 - Iniciar App: `cd app && npx expo start`
