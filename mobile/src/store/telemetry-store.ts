@@ -146,6 +146,13 @@ export type ConnectionStatus =
   | 'connected' // Recibiendo telemetría activamente
   | 'error'; // Fallo en cualquier etapa
 
+type DiscoveredServer = {
+  ip: string;
+  port: number;
+  serverName: string;
+  lastSeen: number;
+};
+
 interface TelemetryState {
   // --- Estado de Red ---
   serverIp: string | null;
@@ -153,6 +160,11 @@ interface TelemetryState {
   pin: string | null;
   connectionStatus: ConnectionStatus;
   error: string | null;
+
+  // --- Descubrimiento ---
+  discoveredServers: DiscoveredServer[];
+  isScanning: boolean;
+  discoveryError: string | null;
 
   // --- Datos de Telemetría ---
   data: TelemetryData | null;
@@ -168,6 +180,13 @@ interface TelemetryState {
   setTelemetryData: (data: TelemetryData) => void;
   /** Registra un error y cambia el estado */
   setError: (error: string | null) => void;
+
+  /** Discovery */
+  setDiscoveredServers: (servers: DiscoveredServer[]) => void;
+  addDiscoveredServer: (server: DiscoveredServer) => void;
+  setIsScanning: (isScanning: boolean) => void;
+  setDiscoveryError: (error: string | null) => void;
+
   /** Limpia el estado para una nueva conexión */
   reset: () => void;
 }
@@ -178,6 +197,13 @@ export const useTelemetryStore = create<TelemetryState>((set) => ({
   pin: null,
   connectionStatus: 'idle',
   error: null,
+
+  // Discovery
+  discoveredServers: [],
+  isScanning: false,
+  discoveryError: null,
+
+  // Telemetry data
   data: null,
 
   setServer: (ip, port) => set({ serverIp: ip, serverPort: port, error: null }),
@@ -185,6 +211,27 @@ export const useTelemetryStore = create<TelemetryState>((set) => ({
   setStatus: (status) => set({ connectionStatus: status }),
   setTelemetryData: (data) => set({ data, connectionStatus: 'connected' }),
   setError: (error) => set({ error, connectionStatus: 'error' }),
+
+  setDiscoveredServers: (servers) => set({ discoveredServers: servers }),
+  addDiscoveredServer: (server) =>
+    set((state) => {
+      const exists = state.discoveredServers.some((s) => s.ip === server.ip);
+      if (exists) {
+        return {
+          discoveredServers: state.discoveredServers.map((s) =>
+            s.ip === server.ip
+              ? { ...s, port: server.port, serverName: server.serverName, lastSeen: Date.now() }
+              : s
+          ),
+        };
+      }
+      return {
+        discoveredServers: [...state.discoveredServers, { ...server, lastSeen: Date.now() }],
+      };
+    }),
+  setIsScanning: (isScanning) => set({ isScanning }),
+  setDiscoveryError: (error) => set({ discoveryError: error }),
+
   reset: () =>
     set({
       serverIp: null,
@@ -192,5 +239,8 @@ export const useTelemetryStore = create<TelemetryState>((set) => ({
       connectionStatus: 'idle',
       data: null,
       error: null,
+      discoveredServers: [],
+      isScanning: false,
+      discoveryError: null,
     }),
 }));

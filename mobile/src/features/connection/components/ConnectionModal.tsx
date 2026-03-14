@@ -1,107 +1,371 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
+import {
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  TextInput,
+  ActivityIndicator,
+  View,
+} from 'react-native';
+import { ThemedView } from '@/components/theme/themed-view';
+import { ThemedText } from '@/components/theme/themed-text';
 import { useTelemetryStore } from '@/store/telemetry-store';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Colors } from '@/constants/theme';
 import { useDiscovery } from '../hooks/use-discovery';
 import { useTelemetrySocket } from '../hooks/use-telemetry-socket';
 
-export const ConnectionModal: React.FC = () => {
-  const { 
-    connectionStatus, 
-    serverIp, 
-    serverPort, 
-    error, 
-    setPin, 
-    reset 
-  } = useTelemetryStore();
+/**
+ * Modal de conexión para TruckPadDeck.
+ * Permite descubrir servidores en la red local e introducir el PIN de seguridad.
+ */
+export function ConnectionModal() {
+  const colorScheme = useColorScheme();
+  const themeColors = Colors[colorScheme ?? 'light'];
 
-  useDiscovery();
+  // Estado del Store
+  const discoveredServers = useTelemetryStore((state) => state.discoveredServers);
+  const isScanning = useTelemetryStore((state) => state.isScanning);
+  const connectionStatus = useTelemetryStore((state) => state.connectionStatus);
+  const error = useTelemetryStore((state) => state.error);
+  const discoveryError = useTelemetryStore((state) => state.discoveryError);
+  const setServer = useTelemetryStore((state) => state.setServer);
+  const setPin = useTelemetryStore((state) => state.setPin);
+  const reset = useTelemetryStore((state) => state.reset);
+
+  // Estado local del Modal
+  const [selectedServer, setSelectedServer] = useState<{
+    ip: string;
+    name: string;
+    port: number;
+  } | null>(null);
+  const [isManual, setIsManual] = useState(false);
+  const [manualIp, setManualIp] = useState('');
+  const [pin, setPinLocal] = useState('');
+
+  // Controla si el discovery está activo (se inicia manualmente)
+  const [discoveryEnabled, setDiscoveryEnabled] = useState(false);
+
+  const isConnected = connectionStatus === 'connected';
+  const showModal = !isConnected;
+
+  // El descubrimiento se inicia manualmente desde el modal.
+  useDiscovery(showModal && discoveryEnabled);
   useTelemetrySocket();
 
-  const [inputPin, setInputPin] = useState('');
-  const [isVisible, setIsVisible] = useState(true);
-
   useEffect(() => {
-    if (connectionStatus === 'connected') {
-      const timer = setTimeout(() => setIsVisible(false), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      setIsVisible(true);
-    }
+    if (connectionStatus === 'connected') return;
+
+    setSelectedServer(null);
+    setIsManual(false);
+    setManualIp('');
+    setPinLocal('');
   }, [connectionStatus]);
 
+  useEffect(() => {
+    // Apaga discovery si el modal se cierra (ya no necesita buscar servidores).
+    if (!showModal) {
+      setDiscoveryEnabled(false);
+    }
+  }, [showModal]);
+
   const handleConnect = () => {
-    if (inputPin.length === 4) {
-      setPin(inputPin);
+    const targetIp = isManual ? manualIp : selectedServer?.ip;
+    const targetPort = isManual ? 42424 : (selectedServer?.port ?? 42424);
+
+    if (targetIp && pin.length === 6) {
+      setServer(targetIp, targetPort);
+      setPin(pin);
     }
   };
 
+  const startDiscovery = () => {
+    reset();
+    setDiscoveryEnabled(true);
+  };
+
+  const stopDiscovery = () => {
+    setDiscoveryEnabled(false);
+  };
+
+  const renderServerItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={[styles.serverItem, { backgroundColor: themeColors.tabIconDefault + '20' }]}
+      onPress={() => {
+        setSelectedServer({ ip: item.ip, name: item.serverName, port: item.port });
+        setIsManual(false);
+        stopDiscovery();
+      }}>
+      <ThemedText type="defaultSemiBold">🖥️ {item.serverName}</ThemedText>
+      <ThemedText type="small" style={{ opacity: 0.7 }}>
+        {item.ip}:{item.port}
+      </ThemedText>
+    </TouchableOpacity>
+  );
+
   return (
-    <Modal visible={isVisible} animationType="slide" transparent={true}>
-      <View className="flex-1 justify-center items-center bg-black/60 px-6">
-        <View className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl">
-          
-          <View className="items-center mb-6">
-            <Text className="text-2xl font-bold text-slate-800">TruckPadDeck</Text>
-            <Text className="text-slate-500 mt-1">Enlace de Telemetría</Text>
-          </View>
+    <Modal visible={showModal} animationType="slide" transparent={true}>
+      <ThemedView style={styles.overlay}>
+        <ThemedView style={[styles.container, { backgroundColor: themeColors.background }]}>
+          <ThemedText type="title" style={styles.title}>
+            🚛 TruckPadDeck
+          </ThemedText>
 
-          {connectionStatus === 'discovering' && !serverIp && (
-            <View className="items-center py-4">
-              <ActivityIndicator size="large" color="#3b82f6" />
-              <Text className="text-slate-600 mt-4 text-center">Buscando servidor...</Text>
-            </View>
-          )}
+          {selectedServer || isManual ? (
+            <View style={styles.authSection}>
+              <ThemedText type="defaultSemiBold">
+                {isManual ? 'Conexión Manual' : `Conectando a ${selectedServer?.name}`}
+              </ThemedText>
 
-          {serverIp && (connectionStatus === 'idle' || connectionStatus === 'discovering' || connectionStatus === 'error') && (
-            <View>
-              <View className="bg-blue-50 p-4 rounded-xl mb-6 border border-blue-100">
-                <Text className="text-blue-900 font-mono text-center">{serverIp}:{serverPort}</Text>
-              </View>
+              {isManual && (
+                <TextInput
+                  style={[
+                    styles.ipInput,
+                    { color: themeColors.text, borderColor: themeColors.tint },
+                  ]}
+                  value={manualIp}
+                  onChangeText={setManualIp}
+                  placeholder="IP del PC (ej: 192.168.1.50)"
+                  placeholderTextColor="#999"
+                  autoFocus
+                />
+              )}
+
+              <ThemedText style={styles.subtitle}>
+                Introduce el PIN de 6 dígitos que ves en tu PC:
+              </ThemedText>
+
               <TextInput
-                className="bg-slate-100 border border-slate-200 rounded-xl p-4 text-center text-2xl font-bold tracking-[10px] text-slate-800 mb-4"
-                placeholder="0000"
-                keyboardType="number-pad"
-                maxLength={4}
-                value={inputPin}
-                onChangeText={setInputPin}
+                style={[
+                  styles.pinInput,
+                  { color: themeColors.text, borderColor: themeColors.tint },
+                ]}
+                value={pin}
+                onChangeText={setPinLocal}
+                placeholder="000000"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                maxLength={6}
+                autoFocus={!isManual}
               />
-              <TouchableOpacity 
-                onPress={handleConnect}
-                disabled={inputPin.length !== 4}
-                className={`py-4 rounded-xl ${inputPin.length === 4 ? 'bg-blue-600' : 'bg-slate-300'}`}
-              >
-                <Text className="text-white text-center font-bold text-lg">Vincular</Text>
-              </TouchableOpacity>
-            </View>
-          )}
 
-          {(connectionStatus === 'connecting' || connectionStatus === 'authenticating') && (
-            <View className="items-center py-8">
-              <ActivityIndicator size="large" color="#3b82f6" />
-              <Text className="text-slate-600 mt-4 font-medium">Validando seguridad...</Text>
-            </View>
-          )}
+              {error && error.includes('PIN') && (
+                <ThemedText style={styles.errorText}>
+                  ❌ PIN incorrecto. Inténtalo de nuevo.
+                </ThemedText>
+              )}
 
-          {connectionStatus === 'connected' && (
-            <View className="items-center py-8">
-              <View className="bg-green-100 p-4 rounded-full mb-4">
-                <Text className="text-3xl">🚛</Text>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={[styles.button, styles.cancelButton]}
+                  onPress={() => {
+                    setSelectedServer(null);
+                    setIsManual(false);
+                    setPinLocal('');
+                  }}>
+                  <ThemedText style={{ color: '#fff' }}>Atrás</ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.button,
+                    styles.connectButton,
+                    { backgroundColor: themeColors.tint },
+                  ]}
+                  onPress={handleConnect}
+                  disabled={pin.length !== 6 || (isManual && !manualIp)}>
+                  {connectionStatus === 'connecting' ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <ThemedText style={{ color: '#fff' }}>Conectar</ThemedText>
+                  )}
+                </TouchableOpacity>
               </View>
-              <Text className="text-green-700 font-bold text-xl text-center">¡Conexión Exitosa!</Text>
+            </View>
+          ) : (
+            <View style={styles.discoverySection}>
+              <ThemedText style={styles.subtitle}>
+                {discoveryEnabled
+                  ? 'Buscando servidores en tu red local...'
+                  : 'Pulsa el botón para buscar servidores en tu red local.'}
+              </ThemedText>
+
+              <FlatList
+                data={discoveredServers}
+                renderItem={renderServerItem}
+                keyExtractor={(item) => item.ip}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    {!discoveryEnabled ? (
+                      <TouchableOpacity
+                        style={[styles.manualButton, { borderColor: themeColors.tint }]}
+                        onPress={startDiscovery}>
+                        <ThemedText style={{ color: themeColors.tint }}>
+                          🔍 Buscar servidor
+                        </ThemedText>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={[styles.manualButton, { borderColor: themeColors.tint }]}
+                        onPress={startDiscovery}
+                        disabled={isScanning}>
+                        <ThemedText style={{ color: themeColors.tint }}>
+                          {isScanning ? '🔄 Buscando...' : '🔁 Volver a buscar'}
+                        </ThemedText>
+                      </TouchableOpacity>
+                    )}
+
+                    {discoveryEnabled ? (
+                      isScanning ? (
+                        <ActivityIndicator size="large" color={themeColors.tint} />
+                      ) : (
+                        <ThemedText style={styles.emptyText}>
+                          No se han encontrado servidores. Pulsa el botón para reintentar.
+                        </ThemedText>
+                      )
+                    ) : (
+                      <ThemedText style={styles.emptyText}>
+                        Asegúrate de que el servidor esté abierto en tu PC y de que ambos
+                        dispositivos se encuentren en la misma red.
+                      </ThemedText>
+                    )}
+
+                    <TouchableOpacity
+                      style={[styles.manualButton, { borderColor: themeColors.tint }]}
+                      onPress={() => {
+                        setIsManual(true);
+                        stopDiscovery();
+                      }}>
+                      <ThemedText style={{ color: themeColors.tint }}>
+                        ⌨️ Introducir IP manualmente
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </View>
+                }
+                style={styles.list}
+              />
+
+              {isScanning && (
+                <ThemedText type="small" style={styles.scanningBadge}>
+                  📡 Escaneando...
+                </ThemedText>
+              )}
+
+              {discoveryError && <ThemedText style={styles.errorText}>{discoveryError}</ThemedText>}
             </View>
           )}
-
-          {error && (
-            <View className="mt-4 p-3 bg-red-50 border border-red-100 rounded-lg">
-              <Text className="text-red-700 text-sm text-center font-medium">{error}</Text>
-              <TouchableOpacity onPress={reset} className="mt-2">
-                <Text className="text-red-600 text-xs text-center font-bold uppercase underline">Reintentar</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-        </View>
-      </View>
+        </ThemedView>
+      </ThemedView>
     </Modal>
   );
-};
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    width: '90%',
+    maxHeight: '80%',
+    borderRadius: 20,
+    padding: 24,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  title: {
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    textAlign: 'center',
+    marginBottom: 20,
+    opacity: 0.8,
+  },
+  discoverySection: {
+    width: '100%',
+  },
+  list: {
+    maxHeight: 300,
+    marginVertical: 10,
+  },
+  serverItem: {
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  emptyContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    marginTop: 15,
+    textAlign: 'center',
+    opacity: 0.6,
+    marginBottom: 20,
+  },
+  manualButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  scanningBadge: {
+    textAlign: 'center',
+    marginTop: 10,
+    opacity: 0.5,
+  },
+  authSection: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  ipInput: {
+    width: '100%',
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    fontSize: 18,
+    marginVertical: 15,
+  },
+  pinInput: {
+    width: '100%',
+    height: 60,
+    borderWidth: 2,
+    borderRadius: 12,
+    textAlign: 'center',
+    fontSize: 32,
+    fontWeight: 'bold',
+    letterSpacing: 8,
+    marginVertical: 15,
+  },
+  errorText: {
+    color: '#ff4444',
+    marginBottom: 10,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
+  },
+  button: {
+    flex: 0.45,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#666',
+  },
+  connectButton: {
+    // Background dinámico
+  },
+});
