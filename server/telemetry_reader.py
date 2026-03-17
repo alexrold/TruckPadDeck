@@ -103,13 +103,21 @@ class TruckTelemetryReader:
             self.shmem.seek(64)
             game_time = struct.unpack('I', self.shmem.read(4))[0]
 
-            # Mapeo de Identidad del Juego y Unidades por defecto
+            # --- NUEVO: UNIDADES DEL USUARIO (Offsets 100-112) ---
+            # 0 = Metric, 1 = Imperial (Normalmente)
+            self.shmem.seek(100)
+            units_raw = struct.unpack('4I', self.shmem.read(16))
+            u_dist = units_raw[0]      # 100: distance (0:km, 1:miles)
+            u_fuel = units_raw[1]      # 104: fuel (0:l, 1:gal)
+            u_temp = units_raw[2]      # 108: temp (0:C, 1:F)
+            u_press = units_raw[3]     # 112: pressure (0:bar, 1:psi, 2:kgcm2)
+
+            # Mapeo de Identidad del Juego
             game_name = "ETS2" if game_id == 1 else "ATS" if game_id == 2 else "Unknown"
             game_ver = f"{ver_major}.{ver_minor}"
             
-            # Preferencia de unidades basada en el juego (ETS2: Métrico, ATS: Imperial)
-            # TODO: Refinar con detección de flag real del usuario si está disponible.
-            is_metric = True if game_id == 1 else False
+            # Determinamos si es métrico basado en la preferencia de distancia del usuario
+            is_metric = True if u_dist == 0 else False
 
             # --- ZONA 3: INTEGERS (500-699) ---
             self.shmem.seek(504) # truck_i: gear (504) y gearDashboard (508)
@@ -161,8 +169,10 @@ class TruckTelemetryReader:
                     "version": game_ver,
                     "units": {
                         "is_metric": is_metric,
-                        "temperature": "C" if is_metric else "F",
-                        "pressure": "bar" if is_metric else "psi"
+                        "distance": "km" if u_dist == 0 else "miles",
+                        "fuel": "l" if u_fuel == 0 else "gal",
+                        "temperature": "C" if u_temp == 0 else "F",
+                        "pressure": "bar" if u_press == 0 else "psi" if u_press == 1 else "kgcm2"
                     }
                 },
                 "game": {
@@ -170,18 +180,57 @@ class TruckTelemetryReader:
                     "plugin_version": 12
                 },
                 "truck": {
-                    "speed": round(abs(f_block[0] * 3.6), 1), # m/s a km/h
-                    "rpm": int(f_block[1]),
-                    "rpm_max": int(rpm_max),
-                    "gear": gear,
-                    "gear_dashboard": gear_dashboard,
-                    "fuel": {
-                        "amount": round(f_block[13], 1),        # Litros actuales
-                        "capacity": round(fuel_capacity, 1),    # Capacidad tanque
-                        "range": round(f_block[15], 1),         # Autonomía estimada (km)
-                        "avg_consumption": round(f_block[14], 2) # L/km promedio
+                    "speed": {
+                        "value": round(abs(f_block[0] * (3.6 if is_metric else 2.237)), 1),
+                        "unit": "km/h" if is_metric else "mph"
                     },
-                    "adblue": round(f_block[16], 1),
+                    "rpm": {
+                        "value": int(f_block[1]),
+                        "max": int(rpm_max)
+                    },
+                    "gear": {
+                        "physical": gear,
+                        "dashboard": gear_dashboard
+                    },
+                    "fuel": {
+                        "value": round(f_block[13] * (1.0 if u_fuel == 0 else 0.264172), 1),
+                        "unit": "l" if u_fuel == 0 else "gal",
+                        "capacity": round(fuel_capacity * (1.0 if u_fuel == 0 else 0.264172), 1),
+                        "range": round(f_block[15] * (1.0 if is_metric else 0.621371), 1),
+                        "range_unit": "km" if is_metric else "miles",
+                        "avg_consumption": {
+                            "value": round((f_block[14] * 100) if u_fuel == 0 else (2.35215 / f_block[14] if f_block[14] > 0 else 0), 1),
+                            "unit": "l/100km" if u_fuel == 0 else "mpg"
+                        }
+                    },
+                    "adblue": {
+                        "value": round(f_block[16], 1),
+                        "unit": "l"
+                    },
+                    "odometer": {
+                        "value": round(f_block[27] * (1.0 if is_metric else 0.621371), 1),
+                        "unit": "km" if is_metric else "miles"
+                    },
+                    "temperature": {
+                        "water": {
+                            "value": round(f_block[19] if u_temp == 0 else (f_block[19] * 9/5) + 32, 1),
+                            "unit": "°C" if u_temp == 0 else "°F"
+                        },
+                        "oil": {
+                            "value": round(f_block[18] if u_temp == 0 else (f_block[18] * 9/5) + 32, 1),
+                            "unit": "°C" if u_temp == 0 else "°F"
+                        }
+                    },
+                    "pressure": {
+                        "air": {
+                            "value": round(f_block[11] if u_press == 0 else (f_block[11] * 14.5038 if u_press == 1 else f_block[11] * 1.01972), 1),
+                            "unit": "bar" if u_press == 0 else "psi" if u_press == 1 else "kg/cm²"
+                        },
+                        "oil": {
+                            "value": round(f_block[17] if u_press == 0 else (f_block[17] * 14.5038 if u_press == 1 else f_block[17] * 1.01972), 1),
+                            "unit": "bar" if u_press == 0 else "psi" if u_press == 1 else "kg/cm²"
+                        }
+                    },
                     "inputs": {
                         "throttle": round(f_block[3] * 100, 1), # 0-100%
                         "brake": round(f_block[4] * 100, 1),
