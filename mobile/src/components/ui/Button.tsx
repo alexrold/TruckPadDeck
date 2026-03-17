@@ -1,6 +1,8 @@
 import { forwardRef } from 'react';
 import { Text, TouchableOpacity, TouchableOpacityProps, View } from 'react-native';
 
+// TODO: NO ES LO SUFICIENTE MENTE UTIL , ADEMAS NO ESTA EN USO SOLO ES UN ARCHIVO SUELTO. ESTE TAMPOCO SERIA SU UBICACIÓN.
+
 interface ButtonProps extends TouchableOpacityProps {
   title: string;
 }

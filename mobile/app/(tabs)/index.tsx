@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 /**
  * Pantalla Principal de TruckPadDeck.
  *
- * Orquestador inicial de la aplicación bajo arquitectura modular.
+ * Orquestador inicial de la aplicación.
  */
 export default function Home() {
   const { connectionStatus, data } = useTelemetryStore();
@@ -19,6 +19,9 @@ export default function Home() {
 
       {/* Módulo de Red y Seguridad */}
       <ConnectionModal />
+
+      {/* TODO:
+        - ACTUALMENTE, ESTE ES UN COMPONENTE DE PRUEBA PARA MOSTRAR LA TELEMETRÍA EN TIEMPO REAL. SE DEBE REEMPLAZAR POR UN DASHBOARD DE L APLICACIÓN QUE DE ACCESO A LA PAGINA DE DEBUGGING CONFIGURACIONES DE LA APLICACIÓN. INFORMATION DEL USUARIO ...  */}
 
       {/* Placeholder de Telemetría Real */}
       <View className="flex-1 items-center justify-center p-6">
