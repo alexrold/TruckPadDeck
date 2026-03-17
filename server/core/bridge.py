@@ -22,7 +22,7 @@ class TelemetryBridge:
         Aísla el ciclo de vida de cada sesión en una corrutina independiente.
         """
         remote_addr = websocket.remote_address[0]
-        logger.info(f"Nuevo intento de conexión entrante: {remote_addr}")
+        logger.info(f"Incoming connection attempt from: {remote_addr}")
 
         try:
             # Fase 1: Autenticación obligatoria mediante PIN de seguridad
@@ -31,9 +31,9 @@ class TelemetryBridge:
                 # Fase 2: Streaming continuo de telemetría si el PIN fue validado
                 await self._streaming_loop(websocket)
         except websockets.exceptions.ConnectionClosed:
-            logger.info(f"Conexión finalizada por el cliente: {remote_addr}")
+            logger.info(f"Connection closed by client: {remote_addr}")
         except Exception as e:
-            logger.error(f"Fallo inesperado en la sesión de {remote_addr}: {e}")
+            logger.error(f"Unexpected session failure for {remote_addr}: {e}")
 
     async def _authenticate(self, websocket, payload, address):
         """ 
@@ -46,19 +46,19 @@ class TelemetryBridge:
                 self.security_manager.log_auth_success(address)
                 await websocket.send(json.dumps({
                     "status": "auth_ok",
-                    "message": "Autenticación exitosa."
+                    "message": "Authentication successful."
                 }))
                 return True
             else:
                 self.security_manager.log_auth_failure(address)
                 await websocket.send(json.dumps({
                     "status": "auth_failed",
-                    "message": "PIN de seguridad inválido."
+                    "message": "Invalid security PIN."
                 }))
                 await websocket.close()
                 return False
         except (json.JSONDecodeError, KeyError):
-            logger.warning(f"Formato de paquete de autenticación incorrecto desde {address}")
+            logger.warning(f"Malformed authentication packet from {address}")
             await websocket.close()
             return False
 
@@ -74,12 +74,12 @@ class TelemetryBridge:
                 if not self.reader.connect():
                     await websocket.send(json.dumps({
                         "status": "waiting_for_game",
-                        "message": "Servidor activo. Simulador no detectado."
+                        "message": "Server active. Simulator not detected."
                     }))
                     await asyncio.sleep(2) # Pausa larga mientras esperamos al juego
                     continue
                 else:
-                    logger.info("Enlace de telemetría con el simulador establecido.")
+                    logger.info("Telemetry link with simulator established.")
 
             # Captura y formateo de la instantánea de datos
             data = self.reader.get_data()

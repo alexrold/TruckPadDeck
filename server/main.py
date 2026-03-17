@@ -40,9 +40,9 @@ async def main():
 
     # ... Interfaz Visual ...
     print("\n" + "═"*45)
-    print(f"  TRUCK PAD DECK SERVER v1.2")
-    print(f"  IP LOCAL: {local_ip}")
-    print(f"  PIN DE SEGURIDAD: {security_mgr.get_pin()}")
+    print(f"  TRUCK PAD DECK SERVER v1.0.0-beta")
+    print(f"  LOCAL IP: {local_ip}")
+    print(f"  SECURITY PIN: {security_mgr.get_pin()}")
     print("═"*45 + "\n")
 
     # Definimos una función de retorno (callback). 
@@ -53,7 +53,7 @@ async def main():
     # Lanzamos el "Faro UDP" en segundo plano. 
     # Su única misión es anunciar la presencia del servidor en la red local (Puerto 5555).
     asyncio.create_task(udp_beacon(local_ip, get_current_port))
-    logger.info(f"Faro de descubrimiento activo (Puerto UDP 5555)")
+    logger.info(f"UDP Discovery Beacon active on port 5555")
 
     # NEGOCIACIÓN DEL PUERTO WEBSOCKET:
     # Intentamos usar el puerto 42424 por defecto.
@@ -64,25 +64,25 @@ async def main():
         server_port = preferred_port
     except OSError:
         # FALLBACK: Si 42424 está ocupado, solicitamos al Sistema Operativo un puerto libre aleatorio (Puerto 0).
-        logger.warning(f"Puerto {preferred_port} occupied. Negociando puerto dinámico con Windows...")
+        logger.warning(f"Port {preferred_port} occupied. Negotiating dynamic port...")
         server = await websockets.serve(bridge_mgr.handle_connection, "0.0.0.0", 0)
         # Extraemos el número de puerto que Windows nos asignó finalmente.
         server_port = server.sockets[0].getsockname()[1]
 
     # En este punto, server_port ya tiene un valor numérico y el Faro UDP empezará a anunciarlo.
-    logger.info(f"Servidor de datos (WebSocket) operativo en {local_ip}:{server_port}")
+    logger.info(f"WebSocket Data Server listening on {local_ip}:{server_port}")
 
     # Registro del servicio vía mDNS (Zeroconf) para redundancia
     mdns = MDNSAdvertiser(local_ip, server_port)
     await mdns.start()
 
-    logger.info("Sistema operativo y a la espera de conexiones de la App.")
+    logger.info("System ready. Waiting for App connections.")
 
     # Mantener el bucle de eventos activo
     try:
         await asyncio.get_running_loop().create_future()
     except Exception as e:
-        logger.error(f"Error crítico durante la ejecución del servidor: {e}")
+        logger.error(f"Critical server error: {e}")
     finally:
         await mdns.stop()
         bridge_mgr.close_reader()
@@ -91,5 +91,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Servidor detenido manualmente por el usuario.")
+        logger.info("Server manually stopped by user.")
         sys.exit(0)

@@ -46,7 +46,7 @@ async def udp_beacon(local_ip, port_callback):
                 sock.sendto(beacon_data, (broadcast_ip, beacon_port))
             await asyncio.sleep(3)
     except Exception as e:
-        logger.error(f"Fallo en el servicio de descubrimiento UDP: {e}")
+        logger.error(f"UDP discovery service failure: {e}")
     finally:
         sock.close()
 
@@ -74,10 +74,10 @@ class MDNSAdvertiser:
         )
         self.aiozc = AsyncZeroconf()
         await self.aiozc.async_register_service(self.info)
-        logger.info(f"Servicio mDNS registrado como 'truckpaddeck.local'")
+        logger.info(f"mDNS service registered as 'truckpaddeck.local'")
 
     async def stop(self):
         if self.aiozc and self.info:
             await self.aiozc.async_unregister_service(self.info)
             await self.aiozc.close()
-            logger.info("Servicio mDNS finalizado.")
+            logger.info("mDNS service stopped.")

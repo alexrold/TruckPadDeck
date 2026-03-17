@@ -3,6 +3,31 @@
 **Fecha:** 12 de Marzo de 2026
 **Estado:** Servidor Modularizado (Backend v1.2) - Frontend en Reestructuración
 
+## 🛠️ Estándares de Código (Backend)
+
+1.  **Logging & Messages:** All console output, logger info/errors, and status messages MUST be in **English**.
+    - Tone: Technical, concise, and direct.
+    - Example: `[UDP] Beacon active on port 5555` instead of `Faro activo`.
+2.  **Architecture:** Keep logic decoupled between `network`, `core`, and `telemetry`.
+
+## 🏗️ Deployment & Setup Strategy (v1.0.0 Roadmap)
+
+This section outlines the requirements for the final installer, aimed at providing a "one-click" setup experience for the end-user.
+
+1.  **Universal Game Detection:**
+    *   **Registry-based:** Scan Windows Registry keys (HKLM/HKCU) to locate ETS2 and ATS installation paths regardless of the platform (Steam, GOG, or Retail).
+    *   **Fallback:** Provide a manual directory picker if registry keys are missing.
+2.  **Plugin Management:**
+    *   **Auto-Creation:** The installer must verify the existence of the `plugins/` directory within `bin/win_x64/`. Create it if missing.
+    *   **DLL Injection:** Automatically copy `scs-telemetry.dll` to the correct location and verify write permissions.
+3.  **Network Configuration:**
+    *   **Firewall Rules:** Execute elevated PowerShell commands during installation to open:
+        *   **UDP 5555:** Inbound/Outbound for Service Discovery (Beacon).
+        *   **TCP 42424:** Inbound for WebSocket Data Streaming.
+4.  **Standalone Executable:**
+    *   **Bundling:** Use **PyInstaller** or **Nuitka** to compile the Python server into a single `.exe` file.
+    *   **User Experience:** Eliminate the need for the user to install Python or manage virtual environments manually.
+
 ## 🚀 Logros Recientes
 
 1.  **Arquitectura Modular (Server):**

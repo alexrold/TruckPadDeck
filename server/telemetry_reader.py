@@ -42,10 +42,10 @@ class TruckTelemetryReader:
                 # Identificar el juego inmediatamente para el log
                 self.shmem.seek(44)
                 game_id = struct.unpack('I', self.shmem.read(4))[0]
-                game_name = "Euro Truck Simulator 2" if game_id == 1 else "American Truck Simulator" if game_id == 2 else "Simulador"
+                game_name = "Euro Truck Simulator 2" if game_id == 1 else "American Truck Simulator" if game_id == 2 else "Simulator"
                 
                 self.is_connected = True
-                logger.info(f"🚀 Conexión establecida con {game_name} (Revision {plugin_revid})")
+                logger.info(f"Connected to {game_name} (SDK Revision {plugin_revid})")
                 return True
             elif plugin_revid == 0:
                 # El juego está en el menú principal o cargando; el plugin aún no tiene datos.
@@ -53,10 +53,9 @@ class TruckTelemetryReader:
                 return False
             else:
                 logger.warning(
-                    f"⚠️ Versión del Plugin incompatible (Detectada: v{plugin_revid}). "
-                    f"Se requiere estrictamente 'SCS SDK Plugin v1.12.1 (Revision 12)'. "
-                    f"Verifica el archivo 'scs-telemetry.dll' en la carpeta de plugins del simulador "
-                    f"(ej: ...\\bin\\win_x64\\plugins\\)."
+                    f"Incompatible Plugin version (Detected: v{plugin_revid}). "
+                    f"Requires strictly 'SCS SDK Plugin v1.12.1 (Revision 12)'. "
+                    f"Check 'scs-telemetry.dll' in the simulator's plugins folder."
                 )
                 self.close()
                 return False
@@ -64,7 +63,7 @@ class TruckTelemetryReader:
             self.is_connected = False
             return False
         except Exception as e:
-            logger.error(f"⚠️ Error al conectar: {e}")
+            logger.error(f"Connection failed: {e}")
             self.is_connected = False
             return False
 
@@ -246,7 +245,7 @@ class TruckTelemetryReader:
                 "status": "connected"
             }
         except Exception as e:
-            logger.error(f"⚠️ Error en lectura: {e}")
+            logger.error(f"Telemetry data processing error: {e}")
             return None
 
     def close(self):
