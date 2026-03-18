@@ -1,11 +1,32 @@
-import {useThemeColor} from '@/hooks/themed/useThemeColor';
-import {Text as DefaultText} from 'react-native';
+import {Text, TextProps} from 'react-native';
 
-type ThemeProps = {lightColor?: string; darkColor?: string};
-export type TextProps = ThemeProps & DefaultText['props'];
+type TextType = 'title' | 'body' | 'bold' | 'semibold' | 'light' | 'link';
 
-export function ThemedText(props: TextProps) {
-  const {style, lightColor, darkColor, ...otherProps} = props;
-  const color = useThemeColor({light: lightColor, dark: darkColor}, 'text');
-  return <DefaultText style={[{color}, style]} {...otherProps} />;
+interface Props extends TextProps {
+  className?: string;
+  type?: TextType;
+}
+
+const typeClasses: Record<string, string> = {
+  title: 'text-3xl font-bold',
+  body: 'font-normal',
+  bold: 'font-bold',
+  semibold: 'font-semibold',
+  light: 'font-light',
+  link: 'font-normal underline',
+};
+
+export function ThemedText({type, className, ...restProps}: Props) {
+  const selectedTypeClass = type ? typeClasses[type] : '';
+
+  return (
+    <Text
+      className={[
+        'text-light-text dark:text-dark-text',
+        selectedTypeClass,
+        className,
+      ].join(' ')}
+      {...restProps}
+    />
+  );
 }

@@ -1,14 +1,31 @@
-import {useThemeColor} from '@/hooks/themed/useThemeColor';
-import {View as DefaultView} from 'react-native';
+import React from 'react';
+import {View, ViewProps} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
-type ThemeProps = {lightColor?: string; darkColor?: string};
-export type ViewProps = ThemeProps & DefaultView['props'];
+interface Props extends ViewProps {
+  className?: string;
+  safe?: boolean;
+}
 
-export function ThemedView(props: ViewProps) {
-  const {style, lightColor, darkColor, ...otherProps} = props;
-  const backgroundColor = useThemeColor(
-    {light: lightColor, dark: darkColor},
-    'background',
+export function ThemedView({
+  className,
+  safe = false,
+  children,
+  style,
+  ...restProps
+}: Props) {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View
+      className={[
+        'flex-1 bg-light-background dark:bg-dark-background',
+        className,
+      ].join(' ')}
+      style={[safe ? {paddingTop: insets.top} : undefined, style]}
+      {...restProps}
+    >
+      {children}
+    </View>
   );
-  return <DefaultView style={[{backgroundColor}, style]} {...otherProps} />;
 }

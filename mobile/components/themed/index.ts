@@ -1,2 +1,5 @@
-export {ThemedText} from './ThemedText';
-export {ThemedView} from './ThemedView';
+export * from './ThemedText';
+export * from './ThemedView';
+export * from './ThemedTextInput';
+export * from './ThemedSwitch';
+export * from './ThemedButton';
