@@ -6,7 +6,7 @@ const HomeScreen = () => {
   return (
     <ThemedView className="mt-20 flex-1 mx-4 ">
       <ThemedText className="font-bold text-xl text-blue-800 ">
-        HomTe Screen
+        Home Screen
       </ThemedText>
     </ThemedView>
   );
