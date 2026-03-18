@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "TruckPadDeck",
+    "slug": "truckpaddeck",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "truckpaddeck",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
