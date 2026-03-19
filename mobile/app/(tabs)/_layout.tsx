@@ -5,8 +5,8 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,      // Oculta el Header por defecto
-        tabBarStyle: { display: 'none' }, // Oculta la barra de pestañas (Tabs)
+        headerShown: false,
+        tabBarStyle: {display: 'none'},
       }}
     >
       <Tabs.Screen
