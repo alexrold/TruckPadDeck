@@ -19,7 +19,7 @@ export function ThemedView({
   return (
     <View
       className={[
-        'flex-1 bg-light-background dark:bg-dark-background',
+        'bg-light-background dark:bg-dark-background',
         className,
       ].join(' ')}
       style={[safe ? {paddingTop: insets.top} : undefined, style]}
