@@ -28,6 +28,18 @@ This section outlines the requirements for the final installer, aimed at providi
     *   **Bundling:** Use **PyInstaller** or **Nuitka** to compile the Python server into a single `.exe` file.
     *   **User Experience:** Eliminate the need for the user to install Python or manage virtual environments manually.
 
+## 🧭 Dashboard Navigation Strategy
+
+Para asegurar que la experiencia de usuario sea fluida y no "bloquee" el dispositivo, se deben implementar los siguientes controles de navegación:
+
+1.  **Cierre de Sesión (Main Dashboard):**
+    *   **Acción:** Un botón visible (ej. en el Header o Menú) que realice una desconexión limpia del WebSocket y desactive el **Modo Inmersivo**.
+    *   **Importante:** Debe restaurar la visibilidad de la barra de estado y de navegación de Android para que el usuario pueda salir de la app normalmente.
+2.  **Retorno a la Biblioteca (Back-to-Library):**
+    *   **Contexto:** Al cargar un dashboard de camión específico (ej. DAF XF), la app entra en modo "Focus".
+    *   **Acción:** Cada dashboard individual debe incluir un "Gesto de Escape" o un botón semitransparente que permita volver al **Selector de Dashboards** (Library).
+    *   **Implementación:** Utilizar `expo-router` para navegar hacia atrás (`router.back()`) o redirigir al index, asegurando que el flujo de datos de telemetría se mantenga activo pero se cambie solo la capa visual (UI).
+
 ## 🚀 Logros Recientes
 
 1.  **Arquitectura Modular (Server):**
@@ -79,6 +91,20 @@ This section outlines the requirements for the final installer, aimed at providi
   - Configurado **NativeWind v4** siguiendo la documentación oficial (Babel, Metro y Tailwind).
   - Configurado **Expo Router** como sistema de navegación principal.
   - **Estado actual:** Pendiente de estabilizar la visualización del terminal y las dependencias nativas del SDK de Expo.
+
+## 📝 Resumen de Sesión (18/03/2026) - CONTEXTO PARA IA
+
+- **Frontend (Mobile v1.1):**
+  - **Refactor de Componentes Themed:**
+    - `ThemedView`: Eliminado el `flex-1` por defecto para permitir contenedores de tamaño fijo o neutro.
+    - `ThemedCard`: Creado como componente estándar para la biblioteca. En modo oscuro usa un gris elevado (`#1C2833`) y bordes `white/10` para mejorar el contraste.
+  - **Modo Inmersivo (Full Deck Experience):**
+    - Instalada e integrada la librería `expo-navigation-bar`.
+    - Configurado `NavigationBar.setVisibilityAsync('hidden')` y `StatusBar hidden` para ocultar controles del sistema.
+  - **Dashboard Selector:**
+    - `index.tsx` transformado en una biblioteca horizontal que filtra por juego (ETS2/ATS).
+    - El menú lateral (Drawer) se ajustó a un ancho fijo de **180px** para no interferir con la visibilidad del dashboard.
+- **Navegación:** Definida la necesidad de un botón de "Escape" para restaurar las barras del sistema al cerrar la app o volver a la biblioteca.
 
 ## Comandos Útiles
 
