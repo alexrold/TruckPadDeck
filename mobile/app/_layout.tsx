@@ -1,58 +1,64 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
-import {useFonts} from 'expo-font';
 import {Stack} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import {useEffect} from 'react';
 import 'react-native-reanimated';
 import '../global.css';
 
+import {Colors} from '@/constants/Colors';
 import {useColorScheme} from '@/hooks/useColorScheme';
+import {ArchivoBlack_400Regular} from '@expo-google-fonts/archivo-black';
+import {Barlow_600SemiBold} from '@expo-google-fonts/barlow';
+import {ChakraPetch_700Bold} from '@expo-google-fonts/chakra-petch';
+import {
+  Inter_300Light,
+  Inter_400Regular,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  useFonts,
+} from '@expo-google-fonts/inter';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+export {ErrorBoundary} from 'expo-router';
 
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Bloquea el ocultamiento automático del Splash Screen
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
+  // Carga de fuentes
+  const [loaded, error] = useFonts({
+    Inter_300Light,
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    ArchivoBlack_400Regular,
+    Barlow_600SemiBold,
+    ChakraPetch_700Bold,
+  });
+
+  useEffect(() => {
+    if (error) throw error;
+    if (loaded) SplashScreen.hideAsync();
+  }, [loaded, error]);
+
+  if (!loaded) return null;
+
+  // Configuración de temas mínimos para React Navigation 7
+  const customTheme = {
+    ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
+    colors: {
+      ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+      ...Colors[colorScheme ?? 'light'],
+      notification: Colors[colorScheme ?? 'light'].accent,
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{headerShown: false}} />
+    <ThemeProvider value={customTheme}>
+      <Stack screenOptions={{headerShown: false}}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="+not-found" options={{headerShown: true}} />
       </Stack>
     </ThemeProvider>
   );
