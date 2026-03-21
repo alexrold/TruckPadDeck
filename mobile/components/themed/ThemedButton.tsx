@@ -16,9 +16,13 @@ export function ThemedButton({className, children, ...rest}: Props) {
       ].join(' ')}
       {...rest}
     >
-      <ThemedText className="text-white text-xl font-bold">
-        {children}
-      </ThemedText>
+      {typeof children === 'string' ? (
+        <ThemedText className="text-white text-xl font-bold">
+          {children}
+        </ThemedText>
+      ) : (
+        children
+      )}
     </Pressable>
   );
 }
