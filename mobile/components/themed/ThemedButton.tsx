@@ -11,13 +11,13 @@ export function ThemedButton({className, children, ...rest}: Props) {
   return (
     <Pressable
       className={[
-        'items-center justify-center rounded-xl px-6 py-3 active:opacity-80',
+        'items-center rounded-xl px-6 py-3 active:opacity-80',
         className,
       ].join(' ')}
       {...rest}
     >
       {typeof children === 'string' ? (
-        <ThemedText className="text-white text-xl font-bold">
+        <ThemedText className="text-light-text dark:text-dark-text bg-light-card/30 ">
           {children}
         </ThemedText>
       ) : (
