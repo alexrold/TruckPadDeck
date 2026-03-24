@@ -23,14 +23,14 @@ interface Props extends TextProps {
 const typeClasses: Record<TextType, string> = {
   // ---ESTRUCTURA---
   title: 'font-road text-2xl font-bold uppercase tracking-wide',
-  subtitle: 'font-sans text-lg font-semibold',
+  subtitle: 'font-sans sans-bold text-lg font-semibold',
   body: 'font-sans text-base font-normal',
   caption: 'font-sans text-xs text-light-muted dark:text-dark-muted',
 
   // ---
   bold: 'font-sans font-bold',
   semibold: 'opacity-60 text-xs font-bold uppercase tracking-widest',
-  light: 'font-sans font-light',
+  light: 'font-sans  font-light',
   link: 'font-sans text-base underline text-light-accent dark:text-dark-accent',
 
   // ---ESPECIALES TRUCK---
