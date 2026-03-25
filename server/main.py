@@ -13,6 +13,7 @@ if current_dir not in sys.path:
 from network.discovery import get_local_ip, udp_beacon, MDNSAdvertiser
 from core.auth import SecurityManager
 from core.bridge import TelemetryBridge
+from version import __version__
 
 # Configuración de registro de eventos (Logging)
 logging.basicConfig(
@@ -40,7 +41,7 @@ async def main():
 
     # ... Interfaz Visual ...
     print("\n" + "═"*45)
-    print(f"  TRUCK PAD DECK SERVER v1.0.0-beta")
+    print(f"  TRUCK PAD DECK SERVER v{__version__}")
     print(f"  LOCAL IP: {local_ip}")
     print(f"  SECURITY PIN: {security_mgr.get_pin()}")
     print("═"*45 + "\n")
