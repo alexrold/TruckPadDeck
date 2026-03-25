@@ -1,7 +1,7 @@
 {
   "name": "truckpaddeck",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "0.1.0-beta",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
