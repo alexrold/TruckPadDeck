@@ -1,7 +1,8 @@
+import {cn} from '@/src/lib/utils';
+import {useThemeColor} from '@/hooks/themed/useThemeColor';
 import {Text, TextProps} from 'react-native';
 
-// Tipos
-type TextType =
+export type TextType =
   | 'title'
   | 'subtitle'
   | 'body'
@@ -14,39 +15,58 @@ type TextType =
   | 'button'
   | 'data';
 
-// Interface
-interface Props extends TextProps {
-  className?: string;
+export type TextVariant =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'muted'
+  | 'error'
+  | 'success'
+  | 'warning';
+
+export interface ThemedTextProps extends TextProps {
   type?: TextType;
+  variant?: TextVariant;
+  className?: string;
+  lightColor?: string;
+  darkColor?: string;
 }
 
 const typeClasses: Record<TextType, string> = {
-  // ---ESTRUCTURA---
   title: 'font-road text-2xl font-bold uppercase tracking-wide',
   subtitle: 'font-sans sans-bold text-lg font-semibold',
   body: 'font-sans text-base font-normal',
-  caption: 'font-sans text-xs text-light-muted dark:text-dark-muted',
-
-  // ---
+  caption: 'font-sans text-xs',
   bold: 'font-sans font-bold',
-  semibold: 'opacity-60 text-xs font-bold uppercase tracking-widest',
-  light: 'font-sans  font-light',
-  link: 'font-sans text-base underline text-light-accent dark:text-dark-accent',
-
-  // ---ESPECIALES TRUCK---
+  semibold: 'text-xs font-bold uppercase tracking-widest opacity-60',
+  light: 'font-sans font-light',
+  link: 'font-sans text-base underline',
   logo: 'font-logo text-4xl',
   button: 'font-road text-lg uppercase font-medium',
   data: 'font-gauge text-xl',
 };
 
-export function ThemedText({type = 'body', className, ...restProps}: Props) {
+export function ThemedText({
+  type = 'body',
+  variant = 'default',
+  className,
+  style,
+  lightColor,
+  darkColor,
+  ...restProps
+}: ThemedTextProps) {
+  // Mapeamos la variante al nombre del color en constants/Colors.ts
+  // Si la variante es 'default', usamos 'text', sino el nombre de la variante.
+  const colorName = variant === 'default' ? 'text' : variant;
+  
+  // Obtenemos el hexadecimal real (React Native prefiere colores en 'style' para temas dinámicos rápidos)
+  const textColor = useThemeColor({light: lightColor, dark: darkColor}, colorName as any);
+
   return (
     <Text
-      className={[
-        'text-light-text dark:text-dark-text',
-        typeClasses[type],
-        className,
-      ].join(' ')}
+      className={cn(typeClasses[type], className)}
+      style={[{color: textColor}, style]}
       {...restProps}
     />
   );

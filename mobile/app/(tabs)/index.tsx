@@ -26,12 +26,10 @@ interface ConnectionSession {
 }
 
 const HomeScreen = () => {
-  // estado del menu lateral
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   /**
-   * Persistencia temporal de la sesión del servidor.
-   * TODO: Sincronizar con servicios de red (UDP/WS).
+   * Datos de conexión (Mock)
    */
   const CONNECTION_DATA: ConnectionSession = {
     ip: '192.168.1.15',
@@ -41,21 +39,16 @@ const HomeScreen = () => {
   };
 
   /**
-   * colores para cada estado de la conexión
+   * Mapeo de estados de conexión a variantes de color
    */
-  const STATUS_COLORS: Record<ConnectionStatus, string> = {
-    CONNECTED: 'text-light-success dark:text-dark-success',
-    ERROR: 'text-light-error dark:text-dark-error',
-    CONNECTING: 'text-light-warning dark:text-dark-warning opacity-80',
-    RECONNECTING: 'text-light-primary dark:text-dark-primary animate-pulse',
-    DISCONNECTED: 'text-light-secondary dark:text-dark-secondary opacity-50',
+  const STATUS_VARIANTS: Record<ConnectionStatus, any> = {
+    CONNECTED: 'success',
+    ERROR: 'error',
+    CONNECTING: 'warning',
+    RECONNECTING: 'primary',
+    DISCONNECTED: 'secondary',
   };
 
-  /**
-   * Configuración de la interface
-   * Oculta elementos del sistema y coloca la interface
-   * en modo LANDSCAPE
-   */
   useEffect(() => {
     ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
     NavigationBar.setVisibilityAsync('hidden');
@@ -65,144 +58,130 @@ const HomeScreen = () => {
     <ThemedView className="flex-1 p-4">
       <StatusBar hidden />
 
-      {/* Header */}
-      <ThemedView className="mb-10 bg-transparent">
-        {/* Header BarMenu - justify-between empuja el status a la derecha */}
-        <ThemedView className="flex-row items-center justify-between bg-transparent">
-          {/* LADO IZQUIERDO: Menu + Títulos */}
-          <ThemedView className="flex-row items-center gap-4 bg-transparent">
-            {/* Botón del menu */}
-            <ThemedButton
-              onPress={() => setIsMenuOpen(true)}
-              className="active:opacity-50"
-            >
-              <ThemedIcon
-                name={'menu-outline'}
-                size={32}
-                className="text-light-primary dark:text-dark-primary"
-              />
-            </ThemedButton>
+      {/* --- HEADER PRINCIPAL --- */}
+      <ThemedView
+        variant="transparent"
+        className="mb-10 flex-row items-center justify-between"
+      >
+        {/* Lado Izquierdo: Branding & Info */}
+        <ThemedView
+          variant="transparent"
+          className="flex-row items-center gap-4"
+        >
+          <ThemedButton
+            size="icon"
+            variant="ghost"
+            onPress={() => setIsMenuOpen(true)}
+          >
+            <ThemedIcon name="menu-outline" size={32} variant="primary" />
+          </ThemedButton>
 
-            {/* Header title */}
-            <ThemedView className="bg-transparent">
-              <ThemedText
-                type="logo"
-                className="text-light-primary dark:text-dark-primary"
-              >
-                TruckPadDeck
-              </ThemedText>
-              <ThemedText type="semibold" className="opacity-80">
-                Dashboard • {CONNECTION_DATA.ip}
-              </ThemedText>
-            </ThemedView>
-          </ThemedView>
-
-          {/* Header connection status */}
-          <ThemedView className="items-end bg-transparent ml-auto">
-            {/* Status e Icono en fila superior */}
-            <ThemedView className="flex-row items-center gap-2 bg-transparent">
-              <ThemedText
-                type="semibold"
-                className="text-[10px] uppercase tracking-widest leading-tight"
-              >
-                {CONNECTION_DATA.status}
-              </ThemedText>
-
-              <ThemedIcon
-                name={
-                  CONNECTION_DATA.status === 'CONNECTED'
-                    ? 'wifi'
-                    : 'wifi-outline'
-                }
-                size={28}
-                className={STATUS_COLORS[CONNECTION_DATA.status]}
-              />
-            </ThemedView>
-
-            {/* Datos técnicos en fila inferior (debajo del icono) */}
-            <ThemedText
-              type="caption"
-              className="opacity-50 mt-1 text-light-muted dark:text-dark-muted"
-            >
-              • PORT: {CONNECTION_DATA.port} • PIN: {CONNECTION_DATA.pin}
+          <ThemedView variant="transparent">
+            <ThemedText type="logo" variant="primary">
+              TruckPadDeck
+            </ThemedText>
+            <ThemedText type="semibold" variant="muted">
+              Dashboard • {CONNECTION_DATA.ip}
             </ThemedText>
           </ThemedView>
         </ThemedView>
+
+        {/* Lado Derecho: Estado de Conexión */}
+        <ThemedView variant="transparent" className="items-end">
+          <ThemedView
+            variant="transparent"
+            className="flex-row items-center gap-2"
+          >
+            <ThemedText
+              type="semibold"
+              className="text-[10px] uppercase tracking-widest"
+            >
+              {CONNECTION_DATA.status}
+            </ThemedText>
+            <ThemedIcon
+              name={
+                CONNECTION_DATA.status === 'CONNECTED' ? 'wifi' : 'wifi-outline'
+              }
+              size={28}
+              variant={STATUS_VARIANTS[CONNECTION_DATA.status]}
+              className={
+                CONNECTION_DATA.status === 'RECONNECTING' ? 'animate-pulse' : ''
+              }
+            />
+          </ThemedView>
+          <ThemedText type="caption" variant="muted" className="mt-1">
+            • PORT: {CONNECTION_DATA.port} • PIN: {CONNECTION_DATA.pin}
+          </ThemedText>
+        </ThemedView>
       </ThemedView>
 
-      {/* Navegación lateral */}
+      {/* --- MENU LATERAL (MODAL) --- */}
       <Modal
         visible={isMenuOpen}
-        statusBarTranslucent={true}
-        transparent={true}
+        statusBarTranslucent
+        transparent
         animationType="fade"
         onRequestClose={() => setIsMenuOpen(false)}
       >
-        <ThemedView className="h-full w-80 shadow-2xl px-6 bg-light-card dark:bg-dark-card flex-col justify-between">
-          <ThemedView className="bg-transparent">
-            {/* Header menu */}
-            <ThemedView className="flex-row justify-between mt-20 mb-10 items-center my-12 bg-transparent dark:bg-transparent">
+        <ThemedView
+          variant="card"
+          className="h-full w-80 shadow-2xl px-6 flex-col justify-between"
+        >
+          <ThemedView variant="transparent">
+            {/* Header del Menu */}
+            <ThemedView
+              variant="transparent"
+              className="flex-row justify-between mt-20 mb-10 items-center"
+            >
               <ThemedText type="title">Menu</ThemedText>
               <ThemedButton
+                size="icon"
+                variant="ghost"
                 onPress={() => setIsMenuOpen(false)}
-                className="flex-row"
               >
                 <ThemedIcon
                   name="chevron-back-outline"
                   size={28}
-                  className="text-light-primary dark:text-dark-primary"
+                  variant="primary"
                 />
               </ThemedButton>
             </ThemedView>
 
-            {/* Items menu library */}
-            <ThemedButton
-              onPress={() => {}}
-              className="flex-row mb-4 gap-4 bg-light-background/50 dark:bg-dark-background/50 p-3 rounded-xl"
-            >
-              <ThemedIcon
-                name={'library-outline'}
-                size={24}
-                className="text-light-secondary dark:text-dark-secondary"
-              />
-              <ThemedText type="subtitle">Library</ThemedText>
-            </ThemedButton>
-
-            {/* Items menu Debugging */}
-            <ThemedButton
-              onPress={() => {}}
-              className="flex-row mb-4 gap-4 bg-light-background/50 dark:bg-dark-background/50 p-3 rounded-xl"
-            >
-              <ThemedIcon
-                name={'bug-outline'}
-                size={24}
-                className="text-light-secondary dark:text-dark-secondary"
-              />
-              <ThemedText type="subtitle">Debugging</ThemedText>
-            </ThemedButton>
-
-            {/* Items menu Settings */}
-            <ThemedButton
-              onPress={() => {}}
-              className="flex-row mb-4 gap-4 bg-light-background/50 dark:bg-dark-background/50 p-3 rounded-xl"
-            >
-              <ThemedIcon
-                name={'settings-outline'}
-                size={24}
-                className="text-light-secondary dark:text-dark-secondary"
-              />
-              <ThemedText type="subtitle">Settings</ThemedText>
-            </ThemedButton>
+            {/* Opciones del Menu */}
+            {[
+              {icon: 'library-outline', label: 'Library'},
+              {icon: 'bug-outline', label: 'Debugging'},
+              {icon: 'settings-outline', label: 'Settings'},
+            ].map((item) => (
+              <ThemedButton
+                key={item.label}
+                variant="outline"
+                className="flex-row mb-4 gap-4 justify-start p-4"
+                onPress={() => {}}
+              >
+                <ThemedIcon
+                  name={item.icon as any}
+                  size={24}
+                  variant="secondary"
+                />
+                <ThemedText type="subtitle">{item.label}</ThemedText>
+              </ThemedButton>
+            ))}
           </ThemedView>
 
-          {/* Footer menu */}
-          <ThemedView className="mb-6 items-center py-4 bg-transparent border-t border-light-border dark:border-dark-border">
-            <ThemedText type="caption">
+          {/* Footer del Menu */}
+          <ThemedView
+            variant="transparent"
+            className="mb-6 items-center py-4 border-t border-light-border dark:border-dark-border"
+          >
+            <ThemedText type="caption" variant="muted">
               TruckPadDeck v{Constants.expoConfig?.version || '0.1.0-beta'}
             </ThemedText>
           </ThemedView>
         </ThemedView>
       </Modal>
+
+      {/* --- EL CONTENIDO DEL DASHBOARD IRÁ AQUÍ --- */}
     </ThemedView>
   );
 };

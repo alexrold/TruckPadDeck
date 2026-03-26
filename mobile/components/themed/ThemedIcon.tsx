@@ -1,21 +1,46 @@
+import {cn} from '@/src/lib/utils';
+import {useThemeColor} from '@/hooks/themed/useThemeColor';
 import {Ionicons} from '@expo/vector-icons';
-import {cssInterop} from 'nativewind';
 import React, {ComponentProps} from 'react';
 
-// Habilitamos Tailwind para la prop 'color'
-cssInterop(Ionicons, {
-  className: {
-    target: 'style',
-    nativeStyleToProp: {
-      color: true,
-    },
-  },
-});
+export type IconVariant =
+  | 'default'
+  | 'primary'
+  | 'secondary'
+  | 'accent'
+  | 'muted'
+  | 'error'
+  | 'success'
+  | 'warning';
 
-interface Props extends ComponentProps<typeof Ionicons> {
+export interface ThemedIconProps extends ComponentProps<typeof Ionicons> {
+  variant?: IconVariant;
   className?: string;
+  lightColor?: string;
+  darkColor?: string;
 }
 
-export function ThemedIcon({className, size = 24, ...restProps}: Props) {
-  return <Ionicons size={size} className={className} {...restProps} />;
+export function ThemedIcon({
+  variant = 'default',
+  className,
+  size = 24,
+  lightColor,
+  darkColor,
+  color: manualColor,
+  ...restProps
+}: ThemedIconProps) {
+  // Mapeamos la variante al nombre del color en constants/Colors.ts
+  const colorName = variant === 'default' ? 'text' : variant;
+  
+  // Obtenemos el hexadecimal real (React Native)
+  const iconColor = useThemeColor({light: lightColor, dark: darkColor}, colorName as any);
+
+  return (
+    <Ionicons
+      size={size}
+      color={manualColor || iconColor}
+      className={cn(className)}
+      {...restProps}
+    />
+  );
 }

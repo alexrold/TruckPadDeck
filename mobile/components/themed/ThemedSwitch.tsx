@@ -1,39 +1,62 @@
+import {cn} from '@/src/lib/utils';
 import {useThemeColor} from '@/hooks/themed/useThemeColor';
-import {Platform, Pressable, Switch, View} from 'react-native';
+import {Platform, Pressable, Switch, SwitchProps, View} from 'react-native';
 import {ThemedText} from './ThemedText';
 
-interface Props {
-  text?: string;
-  value: boolean;
+export interface ThemedSwitchProps extends SwitchProps {
+  label?: string;
+  variant?: 'primary' | 'secondary' | 'accent' | 'success';
   className?: string;
-  onValueChange: (value: boolean) => void;
+  lightColor?: string;
+  darkColor?: string;
 }
 
 const isAndroid = Platform.OS === 'android';
 
-export const ThemedSwitch = ({
-  text,
+/**
+ * ThemedSwitch es una combinación de un Label y un Switch nativo,
+ * adaptado a la estética de TruckPadDeck.
+ */
+export function ThemedSwitch({
+  label,
   value,
-  className,
   onValueChange,
-}: Props) => {
-  const switchActiveColor = useThemeColor({}, 'secondary');
+  variant = 'secondary',
+  className,
+  style,
+  lightColor,
+  darkColor,
+  ...restProps
+}: ThemedSwitchProps) {
+  // Obtenemos el color activo del motor de temas
+  const activeColor = useThemeColor({light: lightColor, dark: darkColor}, variant as any);
+  const trackColorFalse = useThemeColor({}, 'border');
+  const thumbColor = isAndroid ? activeColor : undefined;
 
   return (
     <Pressable
-      className={[
-        'flex flex-row mx-2 items-center justify-between active:opacity-80',
-        className,
-      ].join(' ')}
-      onPress={() => onValueChange(!value)}
+      className={cn(
+        'flex-row items-center justify-between p-2 active:opacity-80',
+        className
+      )}
+      onPress={() => onValueChange?.(!value)}
+      style={style}
     >
-      {text ? <ThemedText type="bold">{text}</ThemedText> : <View />}
+      {label ? (
+        <ThemedText type="semibold" className="flex-1 mr-4">
+          {label}
+        </ThemedText>
+      ) : (
+        <View className="flex-1" />
+      )}
+      
       <Switch
         value={value}
         onValueChange={onValueChange}
-        thumbColor={isAndroid ? switchActiveColor : ''}
-        trackColor={{false: '#ccc', true: switchActiveColor}}
+        thumbColor={thumbColor}
+        trackColor={{false: trackColorFalse, true: activeColor}}
+        {...restProps}
       />
     </Pressable>
   );
-};
+}

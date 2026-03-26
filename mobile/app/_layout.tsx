@@ -1,6 +1,7 @@
 import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
 import {Stack} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import {StatusBar} from 'expo-status-bar';
 import {useEffect} from 'react';
 import 'react-native-reanimated';
 import '../global.css';
@@ -20,13 +21,16 @@ import {
 
 export {ErrorBoundary} from 'expo-router';
 
-// Bloquea el ocultamiento automático del Splash Screen
+// Evita que el splash screen se oculte antes de cargar recursos críticos
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
-  // Carga de fuentes
+  /**
+   * Carga de tipografías necesarias para los dashboards (Road, Gauge, Logo).
+   * Si estas fallan, el diseño visual de los camiones se desmorona.
+   */
   const [loaded, error] = useFonts({
     Inter_300Light,
     Inter_400Regular,
@@ -37,6 +41,7 @@ export default function RootLayout() {
     ChakraPetch_700Bold,
   });
 
+  // Gestión de errores y ocultamiento del Splash
   useEffect(() => {
     if (error) throw error;
     if (loaded) SplashScreen.hideAsync();
@@ -44,22 +49,27 @@ export default function RootLayout() {
 
   if (!loaded) return null;
 
-  // Configuración de temas mínimos para React Navigation 7
-  const customTheme = {
-    ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
+  /**
+   * Construcción del tema de navegación.
+   * Fusionamos los colores base de React Navigation con la paleta de TruckPadDeck
+   * para que toda la infraestructura de navegación sea coherente.
+   */
+  const theme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
+  const navigationTheme = {
+    ...theme,
     colors: {
-      ...(colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+      ...theme.colors,
       ...Colors[colorScheme ?? 'light'],
-      notification: Colors[colorScheme ?? 'light'].accent,
     },
   };
 
   return (
-    <ThemeProvider value={customTheme}>
+    <ThemeProvider value={navigationTheme}>
       <Stack screenOptions={{headerShown: false}}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="+not-found" options={{headerShown: true}} />
       </Stack>
+      <StatusBar style="auto" />
     </ThemeProvider>
   );
 }
