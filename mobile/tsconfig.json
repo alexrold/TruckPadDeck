@@ -5,7 +5,9 @@
 
     "paths": {
       "@/*": ["./*"],
-      "@src/*": ["./src/*"]
+      "@src/*": ["./src/*"],
+      "@features/*": ["./src/features/*"],
+      "@hooks/*": ["./src/features/*/hooks"]
     }
   },
   "include": [
