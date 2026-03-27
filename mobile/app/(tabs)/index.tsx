@@ -1,34 +1,21 @@
 import {ThemedView} from '@/components/themed';
-import {dashboardDataSeed} from '@/constants/DashboardDataSeed';
 import {StatusBar} from 'expo-status-bar';
 import React, {useState} from 'react';
+import {dashboardDataSeed} from '@/constants/DashboardDataSeed';
 
-// Feature Components & Hooks (Vía Archivos de Barril)
-import {
-  DashboardGrid,
-  HomeHeader,
-  LibraryHeader,
-  Sidebar,
-} from '@features/home/components';
-import {
-  useDashboardFilter,
-  useDashboardLayout,
-  useDashboardSearch,
-  useHomeShell,
-} from '@features/home/hooks';
+// Feature Components & Hooks
+import {Sidebar, HomeHeader, LibraryHeader, DashboardGrid} from '@features/home/components';
+import {useDashboardSearch, useDashboardFilter, useDashboardLayout, useHomeShell} from '@features/home/hooks';
 
-// Configuración técnica de dimensiones del Shell
 const SIDEBAR_WIDTH = 300;
 const CARD_MIN_WIDTH = 280;
 
 /**
  * HomeScreen - Orquestador principal del Shell de la Aplicación.
- * Su única responsabilidad es coordinar los hooks de lógica con los
- * componentes visuales de alto nivel.
  */
 const HomeScreen = () => {
   /**
-   * Estado de visibilidad del Shell lateral.
+   * Estado de visibilidad del Shell lateral. 
    * Iniciamos en 'false' para maximizar el área útil del Viewport en el arranque.
    */
   const [isMenuOpen, setIsMenuOpen] = useState(false);

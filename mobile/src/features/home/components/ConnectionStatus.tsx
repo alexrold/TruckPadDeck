@@ -1,17 +1,19 @@
 import {ThemedIcon, ThemedText, ThemedView} from '@/components/themed';
+import {useConnectionStore} from '@store/index';
 import React from 'react';
 
 /**
- * ConnectionStatus - Lado derecho de la cabecera: Estado técnico del enlace.
- * Actualmente usa datos mockeados, próximamente conectados a Zustand.
+ * ConnectionStatus - Indicador reactivo del enlace técnico.
+ * Encapsula la lógica visual de la sesión de streaming. Oculta metadatos 
+ * sensibles de red (Port/PIN) durante estados de inactividad o búsqueda (Discovery).
  */
 export const ConnectionStatus = () => {
-  // Mock data - Futuro: const { status, port, pin } = useConnectionStore();
-  const CONNECTION_DATA = {
-    port: 42424,
-    pin: '424242',
-    status: 'CONNECTED',
-  };
+  // Consumo reactivo de estado global mediante suscripción selectiva. 
+  const port = useConnectionStore((state) => state.port);
+  const pin = useConnectionStore((state) => state.pin);
+  const status = useConnectionStore((state) => state.status);
+
+  const isConnected = status === 'CONNECTED';
 
   return (
     <ThemedView variant="transparent" className="items-end">
@@ -20,13 +22,21 @@ export const ConnectionStatus = () => {
           type="semibold"
           className="text-[10px] uppercase tracking-widest leading-tight"
         >
-          {CONNECTION_DATA.status}
+          {status}
         </ThemedText>
-        <ThemedIcon name="wifi" size={28} variant="success" />
+        <ThemedIcon 
+          name="wifi" 
+          size={28} 
+          variant={isConnected ? 'success' : 'muted'} 
+        />
       </ThemedView>
-      <ThemedText type="caption" variant="muted" className="mt-1">
-        • PORT: {CONNECTION_DATA.port} • PIN: {CONNECTION_DATA.pin}
-      </ThemedText>
+
+      {/* Visualización condicional de parámetros de enlace técnico */}
+      {isConnected && (
+        <ThemedText type="caption" variant="muted" className="mt-1">
+          • PORT: {port} • PIN: {pin}
+        </ThemedText>
+      )}
     </ThemedView>
   );
 };
