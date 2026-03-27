@@ -1,5 +1,5 @@
-import {cn} from '@/src/lib/utils';
 import {useThemeColor} from '@/hooks/themed/useThemeColor';
+import {cn} from '@/src/lib/utils';
 import React from 'react';
 import {View, ViewProps} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -28,11 +28,12 @@ export function ThemedView({
 
   // Mapeamos la variante al nombre del color en constants/Colors.ts
   const colorName = variant === 'card' ? 'card' : 'background';
-  
+
   // Obtenemos el color real (hexadecimal) basándonos en el tema actual
-  const backgroundColor = variant !== 'transparent' 
-    ? useThemeColor({light: lightColor, dark: darkColor}, colorName as any)
-    : 'transparent';
+  const backgroundColor =
+    variant !== 'transparent'
+      ? useThemeColor({light: lightColor, dark: darkColor}, colorName as any)
+      : 'transparent';
 
   return (
     <View

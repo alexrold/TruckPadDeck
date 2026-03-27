@@ -1,5 +1,5 @@
-import {cn} from '@/src/lib/utils';
 import {useThemeColor} from '@/hooks/themed/useThemeColor';
+import {cn} from '@/src/lib/utils';
 import {ReactNode} from 'react';
 import {Pressable, PressableProps, ViewStyle} from 'react-native';
 import {ThemedText} from './ThemedText';
@@ -41,37 +41,38 @@ export function ThemedButton({
   // Determinamos el color de fondo basado en la variante
   const backgroundColor = useThemeColor(
     {light: lightColor, dark: darkColor},
-    (variant === 'ghost' || variant === 'outline' ? 'transparent' : variant) as any
+    (variant === 'ghost' || variant === 'outline'
+      ? 'transparent'
+      : variant) as any,
   );
 
   // Estilos de borde para la variante outline
   const borderColor = useThemeColor({}, 'border');
-  const outlineStyle: ViewStyle = variant === 'outline' 
-    ? { borderWidth: 1, borderColor } 
-    : {};
+  const outlineStyle: ViewStyle =
+    variant === 'outline' ? {borderWidth: 1, borderColor} : {};
 
   return (
     <Pressable
       className={cn(
         'items-center justify-center active:opacity-80',
         sizeClasses[size],
-        className
+        className,
       )}
-      style={[
-        { backgroundColor },
-        outlineStyle,
-        style as ViewStyle,
-      ]}
+      style={[{backgroundColor}, outlineStyle, style as ViewStyle]}
       {...rest}
     >
       {typeof children === 'string' ? (
         <ThemedText
           type="button"
-          // Si el botón es primario o peligro, el texto suele ser blanco/claro
+          // Si el botón es primario o danger, el texto suele ser blanco/claro
           // Si es ghost/outline, usamos el color primario del tema
-          variant={variant === 'primary' || variant === 'danger' ? 'default' : 'primary'}
+          variant={
+            variant === 'primary' || variant === 'danger'
+              ? 'default'
+              : 'primary'
+          }
           className={cn(
-            (variant === 'primary' || variant === 'danger') ? 'text-white' : ''
+            variant === 'primary' || variant === 'danger' ? 'text-white' : '',
           )}
         >
           {children}
