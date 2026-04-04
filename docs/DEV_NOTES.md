@@ -111,3 +111,26 @@ Para asegurar que la experiencia de usuario sea fluida y no "bloquee" el disposi
 - Iniciar servidor: `cd server && python main.py`
 - Instalar dependencias (mobile): `cd mobile && bun install`
 - Iniciar App: `cd mobile && bun run start`
+
+## 📝 Resumen de Sesión (27/03/2026) - CONTEXTO PARA IA (Suspensión)
+
+- **Arquitectura Mobile (Feature-First):**
+  - Refactorización total de `HomeScreen` (`app/(tabs)/index.tsx`). Se dividió en componentes atómicos (`Sidebar`, `HomeHeader`, `LibraryHeader`, `DashboardGrid`, `DashboardSearch`, `QuickAccess`) ubicados en `src/features/home/components/`.
+  - Se crearon hooks especializados (`useDashboardSearch`, `useDashboardFilter`, `useDashboardLayout`, `useHomeShell`) en `src/features/home/hooks/`.
+  - Se implementaron archivos de barril (`index.ts`) y alias (`@features`, `@hooks`, `@store`) en `tsconfig.json`.
+- **Estado Global (Zustand):**
+  - Instalación de `zustand`.
+  - Creación de `useUIStore.ts` (manejo de tema `light/dark/system` y lenguaje `es/en`).
+  - Creación de `useConnectionStore.ts` (manejo de IP, puerto, PIN, status y estado del Modal).
+  - Eliminación de mocks locales en favor de la suscripción al store global.
+- **Service Discovery & Red:**
+  - Instalación de `react-native-udp` (requiere Development Build).
+  - Implementación del hook `useServiceDiscovery.ts` para escuchar paquetes UDP en el puerto 5555 y actualizar el store de conexión automáticamente.
+  - Corrección de `reuseAddr` a `reusePort` por requerimientos nativos.
+- **UI/UX de Conexión:**
+  - Creación de `ConnectionModal.tsx` como Centro de Mando de Red (muestra estado de escaneo, pide PIN o permite ingreso manual).
+  - Refactor del disparador `ConnectionStatus.tsx` usando `ThemedButton` con renderizado condicional según el estado (`CONNECTED` vs `DISCONNECTED`).
+- **Pendientes al reanudar:**
+  - Probar a fondo el flujo del `ConnectionModal` con el servidor Python emitiendo UDP.
+  - Definir e implementar la estructura de `useTelemetryStore.ts` para ingerir los datos del WebSocket.
+  - Implementar la validación del PIN vía WebSocket.
