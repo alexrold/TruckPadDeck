@@ -6,157 +6,240 @@ import {
   ThemedView,
 } from '@/components/themed';
 import {useConnectionStore} from '@store/index';
-import React, {useState} from 'react';
-import {Modal, Pressable} from 'react-native';
+import {useLocalIp} from '../../../hooks/useLocalIp';
+import React, {useState, useEffect} from 'react';
+import {Modal, Pressable, ActivityIndicator} from 'react-native';
 
 /**
- * ConnectionModal - Centro de control para el enlace PC-App.
- * Gestiona los flujos de Service Discovery automático, entrada de PIN (Handshake)
- * y configuración manual de parámetros de red (IP/Port Fallback).
+ * ConnectionModal - Gestor de interfaz para el enlace PC-Móvil.
+ * Orquesta los flujos de Discovery automático, configuración manual e ingreso de PIN.
  */
 export const ConnectionModal = () => {
   const {ip, port, status, isModalOpen, setModalOpen, setConnection, setStatus} =
     useConnectionStore();
+
+  // Detector de Network Prefix para optimización de entrada manual
+  useLocalIp();
 
   const [manualMode, setManualMode] = useState(false);
   const [inputIp, setInputIp] = useState(ip);
   const [inputPort, setInputPort] = useState(port.toString());
   const [pin, setPin] = useState('');
 
+  // Sincronización del estado local con el store (Discovery/Network Prefix)
+  useEffect(() => {
+    setInputIp(ip);
+    setInputPort(port.toString());
+  }, [ip, port]);
+
+  /**
+   * Aplicación de máscara dinámica para direcciones IPv4.
+   * Facilita la entrada de datos agregando delimitadores automáticamente.
+   */
+  const handleIpChange = (text: string) => {
+    let cleaned = text.replace(/[^0-9.]/g, '');
+    cleaned = cleaned.replace(/\.\./g, '.');
+    const segments = cleaned.split('.');
+    if (segments.length <= 4) {
+      const lastSegment = segments[segments.length - 1];
+      if (lastSegment.length === 3 && segments.length < 4 && !text.endsWith('.')) {
+        cleaned += '.';
+      }
+    }
+    setInputIp(cleaned);
+  };
+
+  /**
+   * Persistencia de parámetros de red configurados manualmente.
+   */
   const handleManualSave = () => {
     setConnection({
       ip: inputIp,
-      port: parseInt(inputPort) || 0,
-      pin: '------',
+      port: parseInt(inputPort) || 42424,
+      pin: '',
     });
     setManualMode(false);
   };
 
-  const handleClose = () => {
-    setModalOpen(false);
-    setManualMode(false);
+  /**
+   * Reseteo de estados de error al modificar el PIN.
+   */
+  const handlePinChange = (text: string) => {
+    if (status === 'ERROR') setStatus('DISCONNECTED');
+    setPin(text);
   };
 
-  // UI Helper: Renderiza el estado de búsqueda o el formulario de PIN
-  const renderPairingContent = () => {
-    if (manualMode) {
+  /**
+   * Inicia el proceso de Handshake disparando el estado CONNECTING.
+   */
+  const handleConnect = () => {
+    if (pin.length < 6) {
+      setStatus('ERROR');
+      return;
+    }
+    setConnection({ ip: inputIp, port: parseInt(inputPort), pin });
+    setStatus('CONNECTING');
+  };
+
+  const renderContent = () => {
+    // --- VISTA: SESIÓN ACTIVA (Ciclo de vida conectado) ---
+    if (status === 'CONNECTED') {
       return (
-        <ThemedView variant="transparent" className="gap-4 w-full">
-          <ThemedText type="subtitle">Configuración Manual</ThemedText>
-          <ThemedTextInput
-            placeholder="Dirección IP (ej. 192.168.1.15)"
-            value={inputIp}
-            onChangeText={setInputIp}
-          />
-          <ThemedTextInput
-            placeholder="Puerto (ej. 42424)"
-            keyboardType="numeric"
-            value={inputPort}
-            onChangeText={setInputPort}
-          />
-          <ThemedButton variant="primary" onPress={handleManualSave}>
-            Aplicar Configuración
-          </ThemedButton>
-          <ThemedButton variant="ghost" onPress={() => setManualMode(false)}>
-            Volver al Discovery
-          </ThemedButton>
+        <ThemedView variant="transparent" className="items-center w-full gap-6 py-4">
+          <ThemedView variant="transparent" className="items-center gap-2">
+            <ThemedIcon name="checkmark-circle" size={64} color="#10B981" />
+            <ThemedText type="subtitle" className="text-green-500 font-bold">Sesión Vinculada</ThemedText>
+          </ThemedView>
+
+          <ThemedView variant="card" className="w-full p-4 border border-green-500/20 bg-green-500/5 items-center gap-1">
+            <ThemedText type="caption" variant="muted">ESTABLECIDO EN:</ThemedText>
+            <ThemedText type="subtitle" className="font-bold">{ip}:{port}</ThemedText>
+          </ThemedView>
+
+          <ThemedView variant="transparent" className="w-full gap-3 mt-4">
+            <ThemedButton 
+              variant="primary" 
+              className="w-full"
+              onPress={() => setModalOpen(false)}
+            >
+              VOLVER AL DASHBOARD
+            </ThemedButton>
+
+            <ThemedButton 
+              variant="ghost" 
+              className="w-full"
+              onPress={() => {
+                setStatus('DISCONNECTED');
+                setPin('');
+              }}
+            >
+              DESCONECTAR SERVIDOR
+            </ThemedButton>
+          </ThemedView>
         </ThemedView>
       );
     }
 
-    const isSearching = ip === '---';
+    // --- VISTA: MODO MANUAL (Override de Discovery) ---
+    if (manualMode) {
+      return (
+        <ThemedView variant="transparent" className="gap-6 w-full">
+          <ThemedText type="subtitle">Configuración Manual</ThemedText>
+          
+          <ThemedView variant="transparent" className="gap-4">
+            <ThemedView variant="transparent" className="gap-2">
+              <ThemedText type="caption" className="font-bold">DIRECCIÓN IP (PC)</ThemedText>
+              <ThemedTextInput
+                placeholder="192.168.1.15"
+                value={inputIp}
+                onChangeText={handleIpChange}
+                keyboardType="numeric"
+              />
+            </ThemedView>
+
+            <ThemedView variant="transparent" className="gap-2">
+              <ThemedText type="caption" className="font-bold">PUERTO</ThemedText>
+              <ThemedTextInput
+                placeholder="42424"
+                value={inputPort}
+                onChangeText={setInputPort}
+                keyboardType="numeric"
+              />
+              <ThemedText type="caption" variant="muted" className="italic">
+                Nota: Modificar puerto solo si el servidor indica uno dinámico.
+              </ThemedText>
+            </ThemedView>
+          </ThemedView>
+
+          <ThemedView variant="transparent" className="gap-2">
+            <ThemedButton variant="primary" onPress={handleManualSave}>GUARDAR Y CONFIGURAR PIN</ThemedButton>
+            <ThemedButton variant="ghost" onPress={() => setManualMode(false)}>CANCELAR</ThemedButton>
+          </ThemedView>
+        </ThemedView>
+      );
+    }
+
+    // --- VISTA: MODO AUTOMÁTICO (UDP Discovery) ---
+    const isServerFound = ip !== '' && !ip.endsWith('.');
 
     return (
       <ThemedView variant="transparent" className="items-center w-full gap-6">
-        {isSearching ? (
-          <>
-            <ThemedIcon
-              name="radio-outline"
-              size={48}
-              variant="primary"
-              className="animate-pulse"
-            />
-            <ThemedText type="subtitle" className="text-center">
-              Escaneando red local...
-            </ThemedText>
-            <ThemedText type="caption" variant="muted" className="text-center">
-              Asegúrate de que el servidor de TruckPadDeck esté abierto en tu PC.
-            </ThemedText>
-          </>
+        <ThemedView variant="transparent" className="flex-row items-center gap-3 bg-primary/10 p-3 rounded-lg w-full">
+          <ThemedIcon name="information-circle-outline" size={18} variant="primary" />
+          <ThemedText type="caption" className="flex-1 text-primary">
+            Asegúrese de que el PC y este dispositivo residan en el mismo segmento de red local.
+          </ThemedText>
+        </ThemedView>
+
+        {!isServerFound ? (
+          <ThemedView variant="transparent" className="items-center gap-4 py-4">
+            <ActivityIndicator size="large" color="#FF5500" />
+            <ThemedText type="subtitle">Escaneando red local...</ThemedText>
+          </ThemedView>
         ) : (
-          <>
-            <ThemedView variant="transparent" className="items-center gap-2">
-              <ThemedText type="subtitle">Servidor Encontrado</ThemedText>
-              <ThemedText type="caption" variant="primary">
-                {ip}:{port}
-              </ThemedText>
+          <ThemedView variant="transparent" className="items-center gap-4 w-full">
+            <ThemedView variant="transparent" className="items-center">
+              <ThemedText type="caption" variant="muted">SERVIDOR DETECTADO EN:</ThemedText>
+              <ThemedText type="subtitle" variant="primary">{ip}:{port}</ThemedText>
             </ThemedView>
 
-            <ThemedTextInput
-              placeholder="Introduce el PIN de 6 dígitos"
-              maxLength={6}
-              keyboardType="numeric"
-              className="w-full text-center text-2xl tracking-[10px] font-bold h-16"
-              value={pin}
-              onChangeText={setPin}
-            />
+            <ThemedView variant="transparent" className="w-full gap-3">
+              <ThemedText type="caption" className="text-center font-bold">
+                Ingrese el PIN de seguridad generado por el servidor
+              </ThemedText>
+              
+              <ThemedTextInput
+                placeholder=""
+                maxLength={6}
+                keyboardType="numeric"
+                className={`text-center text-3xl font-bold tracking-[15px] h-16 ${status === 'ERROR' ? 'border-red-500 text-red-500 bg-red-500/10' : ''}`}
+                value={pin}
+                onChangeText={handlePinChange}
+              />
 
-            <ThemedButton
-              variant="primary"
+              {status === 'ERROR' && (
+                <ThemedView variant="transparent" className="flex-row items-center justify-center gap-2">
+                  <ThemedIcon name="alert-circle" size={16} color="#EF4444" />
+                  <ThemedText type="caption" className="text-red-500 font-bold">
+                    {pin.length < 6 ? 'El PIN debe constar de 6 dígitos' : 'PIN inválido o fallo de comunicación'}
+                  </ThemedText>
+                </ThemedView>
+              )}
+            </ThemedView>
+
+            <ThemedButton 
+              variant="primary" 
               className="w-full"
-              onPress={() => setStatus('CONNECTED')}
-              disabled={pin.length < 6}
+              onPress={handleConnect}
+              disabled={status === 'CONNECTING'}
             >
-              Vincular Dispositivo
+              {status === 'CONNECTING' ? 'ESTABLECIENDO ENLACE...' : 'VINCULAR DISPOSITIVO'}
             </ThemedButton>
-          </>
+          </ThemedView>
         )}
 
-        <ThemedButton
-          variant="ghost"
-          className="mt-4"
-          onPress={() => setManualMode(true)}
-        >
-          Usar IP Manual
+        <ThemedButton variant="ghost" className="mt-2" onPress={() => setManualMode(true)}>
+          {isServerFound ? 'MODIFICAR DIRECCIONAMIENTO' : 'CONFIGURAR IP MANUAL'}
         </ThemedButton>
       </ThemedView>
     );
   };
 
   return (
-    <Modal
-      visible={isModalOpen}
-      transparent
-      animationType="fade"
-      onRequestClose={handleClose}
-    >
-      <Pressable
-        className="flex-1 bg-black/60 items-center justify-center p-6"
-        onPress={handleClose}
-      >
-        <Pressable
-          onPress={(e) => e.stopPropagation()} // Evita cerrar el modal al tocar dentro
-          className="w-[450px]"
-        >
-          <ThemedView
-            variant="card"
-            className="p-8 rounded-3xl border border-light-border dark:border-dark-border shadow-2xl"
-          >
-            {/* Header del Modal */}
-            <ThemedView
-              variant="transparent"
-              className="flex-row justify-between items-center mb-8"
-            >
-              <ThemedView variant="transparent" className="flex-row items-center gap-3">
+    <Modal visible={isModalOpen} transparent animationType="fade">
+      <Pressable className="flex-1 bg-black/60 items-center justify-center p-6" onPress={() => setModalOpen(false)}>
+        <Pressable onPress={(e) => e.stopPropagation()} className="w-[450px]">
+          <ThemedView variant="card" className="p-8 rounded-3xl border border-light-border dark:border-dark-border shadow-2xl">
+            <ThemedView variant="transparent" className="flex-row justify-between items-center mb-6">
+              <ThemedView variant="transparent" className="flex-row items-center gap-2">
                 <ThemedIcon name="wifi" size={24} variant="primary" />
                 <ThemedText type="title">Conexión</ThemedText>
               </ThemedView>
-              <ThemedButton size="icon" variant="ghost" onPress={handleClose}>
+              <ThemedButton size="icon" variant="ghost" onPress={() => setModalOpen(false)}>
                 <ThemedIcon name="close" size={24} variant="muted" />
               </ThemedButton>
             </ThemedView>
-
-            {renderPairingContent()}
+            {renderContent()}
           </ThemedView>
         </Pressable>
       </Pressable>
