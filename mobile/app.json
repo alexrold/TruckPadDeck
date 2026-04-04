@@ -3,7 +3,7 @@
     "name": "TruckPadDeck",
     "slug": "truckpaddeck",
     "version": "0.1.0-beta",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "truckpaddeck",
     "userInterfaceStyle": "automatic",

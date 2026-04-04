@@ -31,6 +31,9 @@ export default function RootLayout() {
 
   // Activación del motor de telemetría global
   useTelemetryConnection();
+  
+  // Gestión global de recursos de hardware (Pantalla/Sensores)
+  useHardwareManager();
 
   /**
    * Carga de tipografías necesarias para los dashboards (Road, Gauge, Logo).
