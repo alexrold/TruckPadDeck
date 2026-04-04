@@ -19,6 +19,8 @@ import {
   useFonts,
 } from '@expo-google-fonts/inter';
 
+import {useTelemetryConnection} from '../src/hooks/useTelemetryConnection';
+
 export {ErrorBoundary} from 'expo-router';
 
 // Evita que el splash screen se oculte antes de cargar recursos críticos
@@ -26,6 +28,9 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  // Activación del motor de telemetría global
+  useTelemetryConnection();
 
   /**
    * Carga de tipografías necesarias para los dashboards (Road, Gauge, Logo).

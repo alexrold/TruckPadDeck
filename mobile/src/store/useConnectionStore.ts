@@ -20,14 +20,14 @@ interface ConnectionState {
 }
 
 /**
- * useConnectionStore - Gestión del estado del enlace de red y UI de conexión.
- * Centraliza la configuración de red y el estado del modal de emparejamiento 
- * para permitir disparadores reactivos desde hooks de infraestructura (Discovery).
+ * useConnectionStore - Almacén global para la gestión del ciclo de vida del enlace de red.
+ * Centraliza los parámetros de direccionamiento (IP/Port), autenticación (PIN)
+ * y los estados de la sesión para el orquestador de telemetría.
  */
 export const useConnectionStore = create<ConnectionState>((set) => ({
-  ip: '---',
-  port: 0,
-  pin: '------',
+  ip: '',
+  port: 42424,
+  pin: '',
   status: 'DISCONNECTED',
   isModalOpen: false,
 
@@ -35,9 +35,9 @@ export const useConnectionStore = create<ConnectionState>((set) => ({
   setStatus: (status) => set({status}),
   setModalOpen: (isModalOpen) => set({isModalOpen}),
   resetConnection: () => set({
-    ip: '---',
-    port: 0,
-    pin: '------',
+    ip: '',
+    port: 42424,
+    pin: '',
     status: 'DISCONNECTED'
   }),
 }));
