@@ -8,25 +8,32 @@ interface ConnectionState {
   port: number;
   pin: string;
   status: ConnectionStatus;
+  
+  // --- UI State ---
+  isModalOpen: boolean;
 
   // --- Acciones ---
   setConnection: (config: {ip: string; port: number; pin: string}) => void;
   setStatus: (status: ConnectionStatus) => void;
+  setModalOpen: (open: boolean) => void;
   resetConnection: () => void;
 }
 
 /**
- * useConnectionStore - Store para la gestión del enlace técnico con el servidor.
- * Centraliza los parámetros de red y el estado del ciclo de vida del WebSocket.
+ * useConnectionStore - Gestión del estado del enlace de red y UI de conexión.
+ * Centraliza la configuración de red y el estado del modal de emparejamiento 
+ * para permitir disparadores reactivos desde hooks de infraestructura (Discovery).
  */
 export const useConnectionStore = create<ConnectionState>((set) => ({
   ip: '---',
   port: 0,
   pin: '------',
   status: 'DISCONNECTED',
+  isModalOpen: false,
 
   setConnection: (config) => set({...config}),
   setStatus: (status) => set({status}),
+  setModalOpen: (isModalOpen) => set({isModalOpen}),
   resetConnection: () => set({
     ip: '---',
     port: 0,

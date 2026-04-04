@@ -4,7 +4,7 @@ import React, {useState} from 'react';
 import {dashboardDataSeed} from '@/constants/DashboardDataSeed';
 
 // Feature Components & Hooks
-import {Sidebar, HomeHeader, LibraryHeader, DashboardGrid} from '@features/home/components';
+import {Sidebar, HomeHeader, LibraryHeader, DashboardGrid, ConnectionModal} from '@features/home/components';
 import {useDashboardSearch, useDashboardFilter, useDashboardLayout, useHomeShell} from '@features/home/hooks';
 
 const SIDEBAR_WIDTH = 300;
@@ -57,6 +57,8 @@ const HomeScreen = () => {
 
         <DashboardGrid numColumns={numColumns} data={filteredDashboards} />
       </ThemedView>
+
+      <ConnectionModal />
     </ThemedView>
   );
 };

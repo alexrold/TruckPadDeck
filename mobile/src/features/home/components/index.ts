@@ -11,3 +11,4 @@ export * from './ConnectionStatus';
 export * from './SidebarHeader';
 export * from './SidebarFooter';
 export * from './SidebarItem';
+export * from './ConnectionModal';
