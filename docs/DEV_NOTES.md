@@ -52,13 +52,33 @@ Para asegurar que la experiencia de usuario sea fluida y no "bloquee" el disposi
     - Rama `main` consolidada como punto de ruptura.
     - App antigua movida a `old-app/` e ignorada para iniciar nueva estructura limpia.
 
+## 📝 Resumen de Sesión (04/04/2026) - CONTEXTO PARA IA
+
+- **Infraestructura de Datos (Mobile Core):**
+  - Implementación de `useTelemetryStore.ts`: Almacén global para datos del vehículo (Velocidad, RPM, Luces, Daños, etc.).
+  - Implementación de `useTelemetryConnection.ts`: Motor de WebSockets con lógica de Handshake (PIN), streaming a 20Hz y reconexión automática resiliente.
+  - Integración global del motor en `RootLayout`.
+- **Inteligencia de Red Local:**
+  - Instalación de `expo-network`.
+  - Creación del hook `useLocalIp.ts`: Detecta automáticamente el prefijo de red local (ej. `192.168.1.`) para optimizar la entrada manual de la IP del PC.
+- **UX de Conexión (Refactor):**
+  - **ConnectionModal robusto:**
+    - Máscara automática para direcciones IPv4 (puntos automáticos al escribir).
+    - Feedback visual de errores (PIN incorrecto o fallo de red) con limpieza automática al editar.
+    - Puerto 42424 pre-rellenado con notas aclaratorias sobre negociación dinámica.
+    - Avisos preventivos de "Misma Red Local".
+    - Gestión de sesión activa: Si ya está conectado, el modal permite ver el servidor actual y desconectarse limpiamente con un botón dedicado.
+- **Gestión de Hardware:**
+  - Instalación de `expo-keep-awake`.
+  - Creación de `useHardwareManager.ts`: Mantiene la pantalla encendida automáticamente solo cuando hay una sesión de telemetría activa.
+  - Liberación de la orientación global en `app.json` (`orientation: default`) para permitir dashboards modulares (Vertical/Horizontal).
+- **Calidad de Código:** Auditoría completa de la documentación técnica en todos los archivos de la App móvil, estandarizando terminología (Discovery, Handshake, Beacon, etc.).
+
 ## 📍 Próximos Pasos (Prioridades)
 
-1.  **Normalización de Unidades (CRÍTICO):** Investigar la detección automática de Metric vs Imperial en el SDK.
-    - El servidor debe proveer datos normalizados o informar a la App de la preferencia del usuario (Km/h vs Mph, Litros vs Galones).
-    - Verificar flags de configuración en la Zona 2 (UI/Config) de la memoria compartida.
-2.  **Nueva Estructura App:** Iniciar `app/` desde cero con una arquitectura de carpetas limpia y coherente.
-3.  **Modularización Frontend:** Separar la lógica de WebSocket del UI para permitir múltiples dashboards (Ingeniero, Logística, Dashboard Clásico).
+1.  **Persistencia (Prioridad Alta):** Implementar la persistencia de la última IP exitosa y preferencias de usuario mediante `AsyncStorage`.
+2.  **Dashboard Visual:** Iniciar el desarrollo del primer tablero real (Digital Dashboard) consumiendo datos vivos del Store.
+3.  **Refactor de Discovery:** Optimizar el hook de UDP para evitar falsos positivos si hay múltiples servidores en la red.
 
 ## ⚠️ Estado de Ramas
 

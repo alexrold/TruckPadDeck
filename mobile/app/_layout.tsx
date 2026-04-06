@@ -20,6 +20,7 @@ import {
 } from '@expo-google-fonts/inter';
 
 import {useTelemetryConnection} from '../src/hooks/useTelemetryConnection';
+import {useHardwareManager} from '../src/hooks/useHardwareManager';
 
 export {ErrorBoundary} from 'expo-router';
 
@@ -31,7 +32,7 @@ export default function RootLayout() {
 
   // Activación del motor de telemetría global
   useTelemetryConnection();
-  
+
   // Gestión global de recursos de hardware (Pantalla/Sensores)
   useHardwareManager();
 
@@ -70,6 +71,13 @@ export default function RootLayout() {
       ...Colors[colorScheme ?? 'light'],
     },
   };
+
+  /**
+   * Estructura de navegación principal.
+   * - "(tabs)" es el contenedor de las pestañas principales (Dashboard, Configuración, etc.)
+   * - "+not-found" es la pantalla de error para rutas no definidas.
+   * Ambas pantallas están envueltas en el ThemeProvider para mantener la coherencia visual.
+   */
 
   return (
     <ThemeProvider value={navigationTheme}>
