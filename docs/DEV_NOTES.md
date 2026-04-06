@@ -28,6 +28,17 @@ This section outlines the requirements for the final installer, aimed at providi
     *   **Bundling:** Use **PyInstaller** or **Nuitka** to compile the Python server into a single `.exe` file.
     *   **User Experience:** Eliminate the need for the user to install Python or manage virtual environments manually.
 
+## 📡 Especificación de Red: Service Discovery (v1.1)
+
+Para garantizar una experiencia "Plug & Play", el sistema implementa un faro UDP redundante:
+
+1.  **Beacon UDP (Puerto 5555):**
+    - **Servidor:** Emite un broadcast JSON cada 3s a `255.255.255.255`.
+    - **App:** Escucha en `0.0.0.0:5555`. 
+    - **Resolución de IP:** La App utiliza `rinfo.address` (capa de transporte) como fuente de verdad absoluta, ignorando el campo `ip` dentro del payload JSON. Esto previene conflictos con `localhost` o interfaces virtuales.
+2.  **mDNS / Zeroconf (Opcional):**
+    - El servidor se registra como `truckpaddeck.local` para resolución de nombres en redes compatibles.
+
 ## 🧭 Dashboard Navigation Strategy
 
 Para asegurar que la experiencia de usuario sea fluida y no "bloquee" el dispositivo, se deben implementar los siguientes controles de navegación:
