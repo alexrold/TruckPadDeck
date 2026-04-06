@@ -4,8 +4,19 @@ import React, {useState} from 'react';
 import {dashboardDataSeed} from '@/constants/DashboardDataSeed';
 
 // Feature Components & Hooks
-import {Sidebar, HomeHeader, LibraryHeader, DashboardGrid, ConnectionModal} from '@features/home/components';
-import {useDashboardSearch, useDashboardFilter, useDashboardLayout, useHomeShell} from '@features/home/hooks';
+import {
+  Sidebar,
+  HomeHeader,
+  LibraryHeader,
+  DashboardGrid,
+  ConnectionModal,
+} from '@features/home/components';
+import {
+  useDashboardSearch,
+  useDashboardFilter,
+  useDashboardLayout,
+  useHomeShell,
+} from '@features/home/hooks';
 
 const SIDEBAR_WIDTH = 300;
 const CARD_MIN_WIDTH = 280;
@@ -15,7 +26,7 @@ const CARD_MIN_WIDTH = 280;
  */
 const HomeScreen = () => {
   /**
-   * Estado de visibilidad del Shell lateral. 
+   * Estado de visibilidad del Shell lateral.
    * Iniciamos en 'false' para maximizar el área útil del Viewport en el arranque.
    */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
