@@ -192,7 +192,11 @@ export const ConnectionModal = () => {
                 placeholder=""
                 maxLength={6}
                 keyboardType="numeric"
-                className={`text-center text-3xl font-bold tracking-[15px] h-16 ${status === 'ERROR' ? 'border-red-500 text-red-500 bg-red-500/10' : ''}`}
+                className={`text-center text-3xl font-bold tracking-[15px] h-20 border-2 bg-black/20 dark:bg-black/40 ${
+                  status === 'ERROR' 
+                    ? 'border-red-500' 
+                    : 'border-light-border dark:border-white/10'
+                }`}
                 value={pin}
                 onChangeText={handlePinChange}
               />
