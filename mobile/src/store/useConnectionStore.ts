@@ -1,6 +1,13 @@
 import {create} from 'zustand';
+import {persist, createJSONStorage} from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type ConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING' | 'RECONNECTING' | 'ERROR';
+export type ConnectionStatus =
+  | 'CONNECTED'
+  | 'DISCONNECTED'
+  | 'CONNECTING'
+  | 'RECONNECTING'
+  | 'ERROR';
 
 interface ConnectionState {
   // --- Datos del Servidor ---
@@ -8,7 +15,7 @@ interface ConnectionState {
   port: number;
   pin: string;
   status: ConnectionStatus;
-  
+
   // --- UI State ---
   isModalOpen: boolean;
 
@@ -23,21 +30,38 @@ interface ConnectionState {
  * useConnectionStore - Almacén global para la gestión del ciclo de vida del enlace de red.
  * Centraliza los parámetros de direccionamiento (IP/Port), autenticación (PIN)
  * y los estados de la sesión para el orquestador de telemetría.
+ * 
+ * Persistencia: Guarda la última IP y Puerto exitosos para facilitar reconexiones.
+ * Seguridad: NUNCA persiste el PIN ni el estado de conexión activa.
  */
-export const useConnectionStore = create<ConnectionState>((set) => ({
-  ip: '',
-  port: 42424,
-  pin: '',
-  status: 'DISCONNECTED',
-  isModalOpen: false,
+export const useConnectionStore = create<ConnectionState>()(
+  persist(
+    (set) => ({
+      ip: '',
+      port: 42424,
+      pin: '',
+      status: 'DISCONNECTED',
+      isModalOpen: false,
 
-  setConnection: (config) => set({...config}),
-  setStatus: (status) => set({status}),
-  setModalOpen: (isModalOpen) => set({isModalOpen}),
-  resetConnection: () => set({
-    ip: '',
-    port: 42424,
-    pin: '',
-    status: 'DISCONNECTED'
-  }),
-}));
+      setConnection: (config) => set({...config}),
+      setStatus: (status) => set({status}),
+      setModalOpen: (isModalOpen) => set({isModalOpen}),
+      resetConnection: () =>
+        set({
+          ip: '',
+          port: 42424,
+          pin: '',
+          status: 'DISCONNECTED',
+        }),
+    }),
+    {
+      name: 'truckpaddeck-connection-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      // Solo persistimos la IP y el Puerto. El PIN y el Status deben ser efímeros.
+      partialize: (state) => ({
+        ip: state.ip,
+        port: state.port,
+      }),
+    }
+  )
+);
