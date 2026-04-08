@@ -1,19 +1,6 @@
 {
   "python.analysis.extraPaths": ["./server"],
   "python.autoComplete.extraPaths": ["./server"],
-  "cSpell.words": [
-    "adblue",
-    "corrutina",
-    "Inicialización",
-    "mdns",
-    "MDNS",
-    "nativewind",
-    "Orquestador",
-    "Reconexión",
-    "revid",
-    "shmem",
-    "telemetría"
-  ],
   "workbench.colorCustomizations": {
     "activityBar.background": "#551913",
     "titleBar.activeBackground": "#77231B",
