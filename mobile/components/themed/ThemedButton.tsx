@@ -9,7 +9,9 @@ export type ButtonVariant =
   | 'secondary'
   | 'outline'
   | 'ghost'
-  | 'danger';
+  | 'danger'
+  | 'success'
+  | 'warning';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 export interface ThemedButtonProps extends PressableProps {
@@ -43,10 +45,13 @@ export function ThemedButton({
     {light: lightColor, dark: darkColor},
     (variant === 'ghost' || variant === 'outline'
       ? 'transparent'
-      : variant) as any,
+      : variant === 'danger' ? 'error' : variant) as any,
   );
 
-  // Estilos de borde para la variante outline
+  // Determinamos el color de los elementos de acento (texto/bordes)
+  const accentColor = useThemeColor({}, variant === 'danger' ? 'error' : 'primary');
+
+  // Estilos de borde para la variante outline o para dar énfasis
   const borderColor = useThemeColor({}, 'border');
   const outlineStyle: ViewStyle =
     variant === 'outline' ? {borderWidth: 1, borderColor} : {};
@@ -65,15 +70,12 @@ export function ThemedButton({
         <ThemedText
           type="button"
           // Si el botón es primario o danger, el texto suele ser blanco/claro
-          // Si es ghost/outline, usamos el color primario del tema
-          variant={
-            variant === 'primary' || variant === 'danger'
-              ? 'default'
-              : 'primary'
-          }
-          className={cn(
-            variant === 'primary' || variant === 'danger' ? 'text-white' : '',
-          )}
+          // Si es ghost/outline, usamos el color de acento (primario o error)
+          style={{
+            color: ['primary', 'danger', 'success', 'warning'].includes(variant) 
+              ? '#FFFFFF' 
+              : accentColor
+          }}
         >
           {children}
         </ThemedText>

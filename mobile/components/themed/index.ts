@@ -5,3 +5,4 @@ export * from './ThemedSwitch';
 export * from './ThemedText';
 export * from './ThemedTextInput';
 export * from './ThemedView';
+export * from './ThemedInfoItem';
