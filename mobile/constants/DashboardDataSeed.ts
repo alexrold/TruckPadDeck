@@ -1,4 +1,4 @@
-export type DashboardGame = 'ETS2' | 'ATS';
+export type DashboardGame = 'ETS2' | 'ATS' | 'ETS2 - ATS';
 export type DashboardOrientation = 'landscape' | 'portrait' | 'both';
 export type DashboardResolution = '720p' | '1080p' | '1440p' | 'any';
 
@@ -17,16 +17,20 @@ export type DASHBOARD_DATA_TYPE = {
   // ── capacidades técnicas
   orientation: DashboardOrientation;
   resolutions: DashboardResolution[];
+  /**
+   * hasDarkMode: Indica si el diseño visual del dashboard soporta una variante 
+   * de "Modo Noche" (independiente del tema global de la App). 
+   */
   hasDarkMode: boolean;
+
+  // ── ciclo de vida y autoría
+  author: string;
+  createdAt: string; // ISO Format YYYY-MM-DD
+  updatedAt: string; // ISO Format YYYY-MM-DD
 };
 
 const DESC =
   'Interfaz optimizada para telemetría de alta precisión y baja latencia.';
-
-/**
- * Imagen por defecto para dashboards que no tienen captura aún.
- */
-export const DEFAULT_PLACEHOLDER_IMAGE = require('../assets/images/dashPlaceholder.png');
 
 export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
   // ── ETS2 · DAF
@@ -42,6 +46,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-1',
@@ -55,6 +62,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-2',
@@ -68,6 +78,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-3',
@@ -81,6 +94,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   // ... resto de dashboards se mantienen igual (usando null por ahora)
   {
@@ -95,6 +111,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-5',
@@ -108,6 +127,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-6',
@@ -121,6 +143,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-7',
@@ -134,6 +159,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-8',
@@ -147,6 +175,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-9',
@@ -160,6 +191,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-10',
@@ -173,6 +207,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-11',
@@ -186,6 +223,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-12',
@@ -199,6 +239,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-13',
@@ -212,6 +255,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-14',
@@ -225,6 +271,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-15',
@@ -238,6 +287,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-16',
@@ -251,6 +303,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-17',
@@ -264,6 +319,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-18',
@@ -277,6 +335,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-19',
@@ -290,6 +351,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-20',
@@ -303,6 +367,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-21',
@@ -316,12 +383,15 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-22',
     title: 'Volvo FH4',
     brand: 'Volvo',
-    game: 'ETS2',
+    game: 'ETS2 - ATS',
     image: null,
     rating: 4.1,
     isNew: false,
@@ -329,12 +399,15 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-23',
     title: 'Volvo FH5',
     brand: 'Volvo',
-    game: 'ETS2',
+    game: 'ETS2 - ATS',
     image: null,
     rating: 4.6,
     isNew: false,
@@ -342,12 +415,15 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-24',
     title: 'Volvo FH6',
     brand: 'Volvo',
-    game: 'ETS2',
+    game: 'ETS2 - ATS',
     image: null,
     rating: 4.9,
     isNew: true,
@@ -355,6 +431,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-25',
@@ -368,6 +447,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-26',
@@ -381,6 +463,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-27',
@@ -394,6 +479,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-28',
@@ -407,6 +495,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-29',
@@ -420,6 +511,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-30',
@@ -433,6 +527,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-31',
@@ -446,6 +543,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-32',
@@ -459,6 +559,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-33',
@@ -472,6 +575,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-34',
@@ -485,6 +591,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-35',
@@ -498,6 +607,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-36',
@@ -511,6 +623,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-37',
@@ -524,6 +639,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-38',
@@ -537,6 +655,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-39',
@@ -550,6 +671,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: false,
     description: DESC,
+    author: 'TruckPad Team',
+    createdAt: '2024-01-15',
+    updatedAt: '2024-03-20',
   },
   {
     id: 'dash-40',
@@ -563,6 +687,9 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['720p', '1080p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
   {
     id: 'dash-41',
@@ -576,5 +703,8 @@ export const dashboardDataSeed: DASHBOARD_DATA_TYPE[] = [
     resolutions: ['1080p', '1440p'],
     hasDarkMode: true,
     description: DESC,
+    author: 'Community Design',
+    createdAt: '2024-02-10',
+    updatedAt: '2024-04-05',
   },
 ];
