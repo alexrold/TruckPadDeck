@@ -4,7 +4,9 @@ import {
   ThemedText,
   ThemedView,
 } from '@/components/themed';
+import {useTranslation} from '@/src/hooks/useTranslation';
 import {useConnectionStore} from '@store/index';
+
 import React from 'react';
 
 /**
@@ -17,8 +19,27 @@ export const ConnectionStatus = () => {
   const pin = useConnectionStore((state) => state.pin);
   const status = useConnectionStore((state) => state.status);
   const setModalOpen = useConnectionStore((state) => state.setModalOpen);
+  const {common} = useTranslation();
 
   const isConnected = status === 'CONNECTED';
+
+  // Mapeo del estado interno (Status Enum) a la traducción visual correspondiente
+  const getStatusText = () => {
+    switch (status) {
+      case 'CONNECTED':
+        return common.connected;
+      case 'CONNECTING':
+        return common.connecting;
+      case 'RECONNECTING':
+        return common.reconnecting;
+      case 'ERROR':
+        return common.error;
+      case 'DISCONNECTED':
+        return common.disconnected;
+      default:
+        return status;
+    }
+  };
 
   return (
     <ThemedButton onPress={() => setModalOpen(true)}>
@@ -36,7 +57,7 @@ export const ConnectionStatus = () => {
               type="semibold"
               className="text-[10px] uppercase tracking-widest leading-tight"
             >
-              {status}
+              {getStatusText()}
             </ThemedText>
             <ThemedIcon
               name="wifi"

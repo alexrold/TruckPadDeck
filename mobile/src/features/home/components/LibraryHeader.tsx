@@ -1,6 +1,8 @@
 import {ThemedView} from '@/components/themed';
 import {dashboardDataSeed} from '@/constants/DashboardDataSeed';
-import React from 'react';
+import {useFavoriteStore} from '@/src/store/useFavoriteStore';
+import {useDownloadStore} from '@/src/store/useDownloadStore';
+import React, { useMemo } from 'react';
 import {DashboardSearch} from './DashboardSearch';
 import {QuickAccess} from './QuickAccess';
 
@@ -9,18 +11,34 @@ interface LibraryHeaderProps {
   searchQuery: string;
   onSearchChange: (text: string) => void;
   resultsCount: number;
+  showQuickAccess?: boolean;
 }
 
 /**
- * LibraryHeader - Wrapper funcional para la sección superior de la biblioteca.
- * Coordina el buscador y los accesos rápidos, inyectando metadatos de resultados.
+ * LibraryHeader - Orquestador de la sección superior de la biblioteca.
+ * 
+ * LÓGICA DE FILTRADO:
+ * El 'Acceso Rápido' solo muestra elementos que el usuario ha marcado como 
+ * FAVORITOS y que además están DESCARGADOS en el dispositivo. Esto asegura 
+ * que la acción de lanzamiento sea inmediata.
  */
 export const LibraryHeader = ({
   isVisible,
   searchQuery,
   onSearchChange,
   resultsCount,
+  showQuickAccess = true,
 }: LibraryHeaderProps) => {
+  const { favoriteIds } = useFavoriteStore();
+  const { downloadedIds } = useDownloadStore();
+
+  // Intersección entre Favoritos e Instalados
+  const quickAccessData = useMemo(() => {
+    return dashboardDataSeed.filter(item => 
+      favoriteIds.includes(item.id) && downloadedIds.includes(item.id)
+    );
+  }, [favoriteIds, downloadedIds]);
+
   if (!isVisible) return null;
 
   return (
@@ -30,7 +48,12 @@ export const LibraryHeader = ({
         onSearchChange={onSearchChange}
         resultsCount={resultsCount}
       />
-      <QuickAccess data={dashboardDataSeed.slice(0, 5)} />
+      {showQuickAccess && quickAccessData.length > 0 && (
+        <QuickAccess data={quickAccessData} />
+      )}
     </ThemedView>
   );
 };
+
+
+

@@ -1,5 +1,6 @@
 import {ThemedButton, ThemedIcon, ThemedText, ThemedView} from '@/components/themed';
 import {DASHBOARD_DATA_TYPE} from '@/constants/DashboardDataSeed';
+import {useTranslation} from '@/src/hooks/useTranslation';
 import React from 'react';
 import {FlatList} from 'react-native';
 
@@ -11,10 +12,12 @@ interface QuickAccessProps {
  * QuickAccess - Lista horizontal de accesos rápidos a dashboards favoritos.
  */
 export const QuickAccess = ({data}: QuickAccessProps) => {
+  const {home} = useTranslation();
+
   return (
     <ThemedView variant="transparent" className="mb-8">
       <ThemedText type="semibold" className="mb-3 opacity-60">
-        Quick Access
+        {home.quick_access}
       </ThemedText>
       <FlatList
         data={data}

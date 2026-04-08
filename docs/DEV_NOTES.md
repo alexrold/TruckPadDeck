@@ -87,9 +87,27 @@ Para asegurar que la experiencia de usuario sea fluida y no "bloquee" el disposi
 
 ## 📍 Próximos Pasos (Prioridades)
 
-1.  **Persistencia (Prioridad Alta):** Implementar la persistencia de la última IP exitosa y preferencias de usuario mediante `AsyncStorage`.
-2.  **Dashboard Visual:** Iniciar el desarrollo del primer tablero real (Digital Dashboard) consumiendo datos vivos del Store.
-3.  **Refactor de Discovery:** Optimizar el hook de UDP para evitar falsos positivos si hay múltiples servidores en la red.
+1.  **Dashboard Visual Real (Prioridad Alta):** Iniciar el desarrollo del primer tablero real (Digital Dashboard) consumiendo datos vivos del Store.
+2.  **Persistencia:** Verificar a fondo la persistencia de temas e idiomas.
+3.  **Refactor de Discovery:** Optimizar el hook de mDNS para mobile.
+
+## 📝 Resumen de Sesión (08/04/2026) - REFACCIÓN E INTEGRIDAD
+
+- **Arquitectura Dashboard (Feature-First):**
+  - Refactorización total de `app/dashboard/[id].tsx` en componentes atómicos: `DashboardHero`, `DashboardInfo`, `DashboardTechSpecs` y `DashboardActions`.
+  - Implementación de `DashboardRegistry.ts` (conceptual) para separar el contenedor de los diseños de camiones.
+  - Implementación de `techSpecsConfig.ts` para un renderizado de datos técnicos basado en configuración (Data-Driven).
+- **Core de UI & Theming (Mejoras Críticas):**
+  - **ThemedView:** Ahora gestiona automáticamente bordes y fondos cuando se usa la variante `card` basándose en la paleta `Colors.ts`.
+  - **ThemedButton:** Añadidas las variantes `success`, `warning` y corregida la variante `danger`. Ahora el color de texto y fondo es 100% dinámico y coherente.
+  - **ThemedInfoItem:** Creado como nuevo componente global para pares de información Icono-Etiqueta-Valor.
+- **Integridad de Datos & UX:**
+  - **Filtro de Favoritos:** Corregida la lógica en `HomeScreen` para que solo muestre dashboards que estén marcados como favoritos Y descargados.
+  - **Eliminación Atómica:** Al desinstalar un dashboard, se limpia automáticamente del store de favoritos.
+  - **Grid Responsiva:** Implementada lógica de "elementos fantasma" en `DashboardGrid` y `DashboardCard` para mantener la alineación perfecta en cualquier dispositivo (móvil/tablet) sin importar el número de elementos.
+- **Constantes:**
+  - Desacoplada la imagen por defecto a `constants/defaultDashboardImage.ts`.
+  - Actualizada la semilla de datos para soportar la etiqueta híbrida `'ETS2 - ATS'`.
 
 ## ⚠️ Estado de Ramas
 
@@ -165,3 +183,16 @@ Para asegurar que la experiencia de usuario sea fluida y no "bloquee" el disposi
   - Probar a fondo el flujo del `ConnectionModal` con el servidor Python emitiendo UDP.
   - Definir e implementar la estructura de `useTelemetryStore.ts` para ingerir los datos del WebSocket.
   - Implementar la validación del PIN vía WebSocket.
+
+## 📝 Resumen de Sesión (07/04/2026) - Acuerdos Estratégicos (CONTEXTO PARA IA)
+
+- **Servidor (Backend - DX):**
+  - **Modo Simulación (`--mock`):** Acordado implementar un flag en `main.py` para generar datos de telemetría simulados (Fake Data). Esto elimina la necesidad de tener ETS2/ATS abierto durante el desarrollo de la App.
+- **Conectividad y Red:**
+  - **Estrategia Dual Discovery:** Confirmada la estructura de usar mDNS como método primario y UDP (puerto 5555) como fallback.
+  - **Handshake Visual:** El servidor generará y mostrará un PIN en consola que el usuario deberá ingresar en la App una sola vez (similar al emparejamiento Bluetooth o Android TV).
+- **Frontend (Mobile UI/UX):**
+  - **Prioridad Estructural:** El desarrollo se centrará en finalizar el marco estructural (Idiomas, Temas, Ajustes, Store Global) antes de invertir tiempo en los dashboards visuales.
+  - **Dashboard "Raw Telemetry Data":** Se diseñará una página/vista especial para mostrar en crudo todo el JSON que llega del servidor. Esto servirá como herramienta de diagnóstico y base para construir los medidores futuros.
+- **Arquitectura de Datos (Decisión Crítica - Telemetría):**
+  - Se ha acordado **NO persistir** los datos de alta frecuencia de `useTelemetryStore.ts` en el almacenamiento local (`AsyncStorage`). Dado que la aplicación es una herramienta de monitoreo en tiempo real a 20Hz, guardar estados pasados (velocidad, RPM) es contraproducente para el rendimiento y la precisión de la información (es preferible mostrar un aviso de desconexión en vivo que mostrar datos "congelados" de hace horas). La persistencia se limitará exclusivamente a configuraciones (IP, Puerto, Idioma, Tema) o datos estáticos de estado de viaje en futuras versiones (modo "Hoja de Ruta").

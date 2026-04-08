@@ -13,10 +13,23 @@ export const useHomeShell = () => {
   useServiceDiscovery();
 
   useEffect(() => {
-    // Lock de orientación para asegurar que el dashboard no rote accidentalmente.
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-    
-    // Ocultamiento de controles del sistema para inmersión total.
-    NavigationBar.setVisibilityAsync('hidden');
-  }, []);
-};
+    let isMounted = true;
+
+    // Lock de orientación seguro. Se silencia el error si la actividad nativa no está lista.
+    const setupNativeEnvironment = async () => {
+      try {
+        if (isMounted) {
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+          await NavigationBar.setVisibilityAsync('hidden');
+        }
+      } catch (error) {
+        console.warn('[HomeShell] Native environment setup skipped:', error);
+      }
+    };
+
+    setupNativeEnvironment();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);};

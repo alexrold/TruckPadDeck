@@ -19,8 +19,8 @@ import {
   useFonts,
 } from '@expo-google-fonts/inter';
 
-import {useTelemetryConnection} from '../src/hooks/useTelemetryConnection';
 import {useHardwareManager} from '../src/hooks/useHardwareManager';
+import {useTelemetryConnection} from '../src/hooks/useTelemetryConnection';
 
 export {ErrorBoundary} from 'expo-router';
 
@@ -37,8 +37,7 @@ export default function RootLayout() {
   useHardwareManager();
 
   /**
-   * Carga de tipografías necesarias para los dashboards (Road, Gauge, Logo).
-   * Si estas fallan, el diseño visual de los camiones se desmorona.
+   * Carga de tipografías personalizadas utilizando Expo Google Fonts.
    */
   const [loaded, error] = useFonts({
     Inter_300Light,
@@ -74,9 +73,9 @@ export default function RootLayout() {
 
   /**
    * Estructura de navegación principal.
-   * - "(tabs)" es el contenedor de las pestañas principales (Dashboard, Configuración, etc.)
-   * - "+not-found" es la pantalla de error para rutas no definidas.
-   * Ambas pantallas están envueltas en el ThemeProvider para mantener la coherencia visual.
+   * - El Stack Navigator envuelve toda la aplicación, permitiendo transiciones fluidas entre pantallas.
+   * - La pantalla "(tabs)" es el punto de entrada a la navegación principal basada en pestañas.
+   * - La pantalla "+not-found" se muestra para rutas no definidas, con un encabezado visible para facilitar la navegación de regreso.
    */
 
   return (

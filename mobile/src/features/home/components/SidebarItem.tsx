@@ -4,14 +4,18 @@ import {ComponentProps} from 'react';
 
 interface SidebarItemProps {
   icon: ComponentProps<typeof ThemedIcon>['name'];
-  label: string;
+  label: string; // Recibe el texto ya traducido desde el orquestador (Sidebar)
   onPress?: () => void;
   isActive?: boolean;
 }
 
 /**
  * SidebarItem - Elemento atómico del menú lateral.
- * Representa una opción de navegación dentro del Shell de la App.
+ * 
+ * PROPÓSITO:
+ * Representa una opción de navegación táctil dentro del Shell de la App. 
+ * Su diseño visual (hover/active states) se adapta mediante Tailwind (NativeWind)
+ * para mantener la coherencia con el tema activo (Claro/Oscuro).
  */
 export const SidebarItem = ({
   icon,

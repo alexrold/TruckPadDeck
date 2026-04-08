@@ -1,7 +1,10 @@
 import {ThemedView} from '@/components/themed';
 import {StatusBar} from 'expo-status-bar';
-import React, {useState} from 'react';
+import React, {useState, useMemo} from 'react';
 import {dashboardDataSeed} from '@/constants/DashboardDataSeed';
+import {useUIStore} from '@/src/store/useUIStore';
+import {useFavoriteStore} from '@/src/store/useFavoriteStore';
+import {useDownloadStore} from '@/src/store/useDownloadStore';
 
 // Feature Components & Hooks
 import {
@@ -25,18 +28,25 @@ const CARD_MIN_WIDTH = 280;
  * HomeScreen - Orquestador principal del Shell de la Aplicación.
  */
 const HomeScreen = () => {
-  /**
-   * Estado de visibilidad del Shell lateral.
-   * Iniciamos en 'false' para maximizar el área útil del Viewport en el arranque.
-   */
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const {viewMode} = useUIStore();
+  const {favoriteIds} = useFavoriteStore();
+  const {downloadedIds} = useDownloadStore();
 
-  // Inicialización de efectos de sistema (Native configuration)
   useHomeShell();
 
-  // Composición de lógica de negocio y layout
+  // Filtrado de favoritos: Solo si están marcados Y descargados
+  const baseData = useMemo(() => {
+    if (viewMode === 'favorites') {
+      return dashboardDataSeed.filter(
+        (item) => favoriteIds.includes(item.id) && downloadedIds.includes(item.id)
+      );
+    }
+    return dashboardDataSeed;
+  }, [viewMode, favoriteIds, downloadedIds]);
+
   const {searchQuery, setSearchQuery} = useDashboardSearch();
-  const filteredDashboards = useDashboardFilter(dashboardDataSeed, searchQuery);
+  const filteredDashboards = useDashboardFilter(baseData, searchQuery);
   const numColumns = useDashboardLayout(
     isMenuOpen,
     SIDEBAR_WIDTH,
@@ -64,6 +74,7 @@ const HomeScreen = () => {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           resultsCount={filteredDashboards.length}
+          showQuickAccess={viewMode !== 'favorites'} // Ocultar si estamos filtrando
         />
 
         <DashboardGrid numColumns={numColumns} data={filteredDashboards} />

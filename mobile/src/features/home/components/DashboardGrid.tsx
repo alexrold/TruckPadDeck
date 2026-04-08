@@ -11,13 +11,35 @@ interface DashboardGridProps {
 
 /**
  * DashboardGrid - Grilla principal de la biblioteca de dashboards.
- * Implementa 'ListEmptyComponent' para manejar estados sin resultados de forma nativa.
+ * Implementa 'ListEmptyComponent' para manejar estados sin resultados.
+ * Añade lógica de 'Placeholders' para mantener la integridad de la cuadrícula
+ * cuando el número de elementos no es múltiplo de las columnas.
  */
 export const DashboardGrid = ({numColumns, data}: DashboardGridProps) => {
+  /**
+   * Formatea los datos para que siempre sean múltiplo del número de columnas,
+   * evitando que los elementos de la última fila se estiren (flex-grow).
+   */
+  const formatData = (dataList: DASHBOARD_DATA_TYPE[], columns: number) => {
+    const fullRows = Math.floor(dataList.length / columns);
+    let lastRowElements = dataList.length - fullRows * columns;
+
+    const formattedData = [...dataList];
+    while (lastRowElements !== columns && lastRowElements !== 0) {
+      formattedData.push({
+        id: `blank-${lastRowElements}`,
+        empty: true,
+      } as any);
+      lastRowElements++;
+    }
+
+    return formattedData;
+  };
+
   return (
     <FlatList
       key={numColumns}
-      data={data}
+      data={formatData(data, numColumns)}
       keyExtractor={(item) => item.id}
       renderItem={({item}) => <DashboardCard item={item} />}
       ListEmptyComponent={<DashboardEmptyState />}
