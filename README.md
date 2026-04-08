@@ -2,6 +2,7 @@
 
 > Panel de Telemetría en Tiempo Real para Euro Truck Simulator 2 y American Truck Simulator.
 
+![Version](https://img.shields.io/badge/version-0.1.0--beta-orange)
 ![Status](https://img.shields.io/badge/status-Active-brightgreen)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Android%20%7C%20iOS-blue)
 ![Architecture](https://img.shields.io/badge/arch-Modular-orange)

@@ -31,3 +31,6 @@ Desktop.ini
 *.obj
 *.pdb
 scs-sdk-*
+*GEMINI*
+GEMINI.md
+*GEMINI.md*

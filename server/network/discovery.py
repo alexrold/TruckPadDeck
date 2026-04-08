@@ -79,5 +79,5 @@ class MDNSAdvertiser:
     async def stop(self):
         if self.aiozc and self.info:
             await self.aiozc.async_unregister_service(self.info)
-            await self.aiozc.close()
+            await self.aiozc.async_close()
             logger.info("mDNS service stopped.")
