@@ -35,7 +35,6 @@ TruckPadDeck/
 ├── mobile/                     # 📱 Aplicación Móvil (Expo + TypeScript) → Ver README.md interno
 ├── server/                     # 📡 Servidor de Datos Python (Asyncio + WebSockets) → Ver README.md interno
 ├── scs-sdk-plugin/             # 🔧 Binario del plugin para el simulador (SCS SDK Revision 12)
-
 └── README.md                   # 📄 Documentación general del ecosistema
 ```
 

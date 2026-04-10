@@ -60,7 +60,7 @@ export const Sidebar = ({width, isOpen, onClose}: SidebarProps) => {
         if (pathname !== '/') router.push('/');
         break;
       case 'debug':
-        router.push('/telemetry-debug');
+        router.push('/debug');
         break;
       case 'settings':
         // Por implementar

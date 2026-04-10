@@ -28,7 +28,7 @@ export const DashboardCard = ({item}: DashboardCardProps) => {
 
   const handleNavigate = () => {
     router.push({
-      pathname: '/dashboard/[id]',
+      pathname: '/dashboards/[id]',
       params: { id: item.id }
     });
   };

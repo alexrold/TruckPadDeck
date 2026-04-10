@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
-import { useTelemetryStore } from '../src/store/useTelemetryStore';
-import { useTranslation } from '../src/hooks/useTranslation';
-import { ThemedView, ThemedText } from '../components/themed';
+import { useTelemetryStore } from '../../src/store/useTelemetryStore';
+import { useTranslation } from '../../src/hooks/useTranslation';
+import { ThemedView, ThemedText } from '../../components/themed';
 
 /**
  * TelemetryDebugScreen - Herramienta de Auditoría y Diagnóstico de Telemetría.

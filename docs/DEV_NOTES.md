@@ -23,8 +23,8 @@
 
 ## 📝 Resumen de Sesión (08/04/2026) - REFACCIÓN E INTEGRIDAD
 
-- **Arquitectura Dashboard (Feature-First):**
-  - Refactorización total de `app/dashboard/[id].tsx` en componentes atómicos: `DashboardHero`, `DashboardInfo`, `DashboardTechSpecs` y `DashboardActions`.
+- **Arquitectura Dashboards (Feature-First):**
+  - Refactorización total de `app/dashboards/[id].tsx` en componentes atómicos: `DashboardHero`, `DashboardInfo`, `DashboardTechSpecs` y `DashboardActions`.
   - Implementación de `DashboardRegistry.ts` (conceptual) para separar el contenedor de los diseños de camiones.
   - Implementación de `techSpecsConfig.ts` para un renderizado de datos técnicos basado en configuración (Data-Driven).
 - **Core de UI & Theming (Mejoras Críticas):**
