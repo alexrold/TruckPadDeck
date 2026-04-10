@@ -30,18 +30,12 @@ El flujo de datos se divide en tres capas críticas:
 
 ```text
 TruckPadDeck/
-├── server/             # Servidor Python (Asyncio + WebSockets)
-│   ├── network/        # Beacon UDP (Service Discovery) y mDNS
-│   ├── core/           # Lógica de seguridad (PIN) y Telemetry Bridge
-│   └── telemetry_reader.py # Lector de memoria compartida (MMF)
-├── mobile/             # Aplicación Móvil (Expo + TypeScript)
-│   ├── src/
-│   │   ├── store/      # Estado global (Zustand) con mapeo 1:1 de telemetría
-│   │   ├── features/   # Módulos por responsabilidad (Connection, Dashboards)
-│   │   └── components/ # Librería UI (NativeWind v4)
-│   └── app/            # Sistema de rutas (Expo Router)
-├── plugin/             # SCS SDK Plugin (C++) - Revision 12 compatible
-└── docs/               # Notas de desarrollo y especificaciones técnicas
+├── docs/                       # 🛡️ Notas de desarrollo y protocolos de integridad (DEV_NOTES.md)
+├── installer/                  # 📦 Scripts de empaquetado y configuración del instalador Windows (.iss)
+├── mobile/                     # 📱 Aplicación Móvil (Expo + TypeScript) → Ver README.md interno
+├── server/                     # 📡 Servidor de Datos Python (Asyncio + WebSockets) → Ver README.md interno
+├── scs-sdk-plugin-V.1.12.1/    # 🔧 Binarios y fuentes del plugin del simulador (SCS SDK Revision 12)
+└── README.md                   # 📄 Documentación general del ecosistema
 ```
 
 ---
