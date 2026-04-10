@@ -1,59 +1,65 @@
 # TruckPadDeck Server - Documentación Técnica (v0.1.0-beta)
 
-Este módulo es el núcleo encargado de leer la memoria compartida del SDK de SCS Telemetry y transmitirla en tiempo real mediante WebSockets.
+Este módulo es el núcleo encargado de leer la memoria compartida (MMF) del SDK de SCS Telemetry y transmitirla en tiempo real mediante WebSockets a la aplicación móvil.
+
+## 📂 Estructura del Proyecto
+
+```text
+server/
+├── core/                       # ⚙️ Lógica central del servidor
+│   ├── auth.py                 # 🔐 Gestión de seguridad (Generación y validación de PIN)
+│   ├── bridge.py               # 🌉 Puente WebSocket (Streaming de telemetría a 20Hz)
+│   └── __init__.py
+├── network/                    # 📡 Servicios de red y descubrimiento
+│   ├── discovery.py            # 🔦 Beacon UDP y mDNS (Detección automática de la App)
+│   └── __init__.py
+├── main.py                     # 🚀 Orquestador principal (Punto de entrada)
+├── telemetry_reader.py         # 🔍 Lector de Memoria Compartida (SCS SDK Revision 12)
+├── requirements.txt            # 📦 Dependencias (asyncio, websockets, zeroconf)
+├── version.py                  # 📌 Control de versión del servidor
+└── README.md                   # 📄 Documentación técnica (este archivo)
+```
 
 ## 📊 Estructura del JSON (Contrato de Datos 1:1)
 
-Cada mensaje enviado por el servidor es un objeto JSON con la siguiente estructura exacta:
+Cada mensaje enviado por el servidor es un objeto JSON con la siguiente estructura dinámica:
 
-### 1. `config` (Configuración Dinámica)
+### 1. `config` (Metadatos y Preferencias)
 
 | Campo               | Tipo     | Descripción                                      |
 | :------------------ | :------- | :----------------------------------------------- |
 | `game`              | `string` | "ETS2" o "ATS".                                  |
-| `version`           | `string` | Versión del juego (ej: "1.50").                  |
-| `units.is_metric`   | `bool`   | Refleja la preferencia de distancia del usuario. |
+| `version`           | `string` | Versión del simulador detectada (ej: "1.50").    |
+| `units.is_metric`   | `bool`   | ¿El usuario usa sistema métrico en el juego?     |
 | `units.distance`    | `string` | "km" o "miles".                                  |
-| `units.fuel`        | `string` | "l" o "gal".                                     |
 | `units.temperature` | `string` | "C" o "F".                                       |
-| `units.pressure`    | `string` | "bar", "psi" o "kgcm2".                          |
 
-### 2. `truck` (Telemetría con Unidades Dinámicas)
+### 2. `truck` (Telemetría de alta frecuencia)
 
-Todos los valores numéricos están convertidos según las preferencias del juego.
+Valores procesados y listos para mostrar en medidores analógicos o digitales.
 
-| Objeto / Campo    | Sub-campo         | Tipo     | Descripción / Unidad                  |
-| :---------------- | :---------------- | :------- | :------------------------------------ |
-| **`speed`**       | `value`           | `float`  | Velocidad real (Km/h o Mph).          |
-|                   | `unit`            | `string` | "km/h" o "mph".                       |
-| **`rpm`**         | `value`           | `int`    | Revoluciones actuales.                |
-|                   | `max`             | `int`    | Límite del motor.                     |
-| **`gear`**        | `physical`        | `int`    | Marcha física (-1 a 18).              |
-|                   | `dashboard`       | `string` | Texto del tablero (ej: "4L", "R1").   |
-| **`fuel`**        | `value`           | `float`  | Cantidad (Litros o Galones).          |
-|                   | `unit`            | `string` | "l" o "gal".                          |
-|                   | `capacity`        | `float`  | Capacidad total del tanque.           |
-|                   | `range`           | `float`  | Autonomía estimada.                   |
-|                   | `range_unit`      | `string` | "km" o "miles".                       |
-|                   | `avg_consumption` | `object` | `{ value, unit }` (L/100km o MPG).    |
-| **`odometer`**    | `value`           | `float`  | Distancia total acumulada.            |
-|                   | `unit`            | `string` | "km" o "miles".                       |
-| **`temperature`** | `water`           | `object` | `{ value, unit }` (°C o °F).          |
-|                   | `oil`             | `object` | `{ value, unit }` (°C o °F).          |
-| **`pressure`**    | `air`             | `object` | `{ value, unit }` (bar, psi, kg/cm²). |
-|                   | `oil`             | `object` | `{ value, unit }` (bar, psi, kg/cm²). |
+| Objeto / Campo    | Sub-campo   | Tipo     | Descripción / Unidad                  |
+| :---------------- | :---------- | :------- | :------------------------------------ |
+| **`speed`**       | `value`     | `float`  | Velocidad real (Km/h o Mph).          |
+|                   | `unit`      | `string` | "km/h" o "mph".                       |
+| **`rpm`**         | `value`     | `int`    | Revoluciones actuales del motor.      |
+|                   | `max`       | `int`    | Zona roja (Límite del motor).         |
+| **`gear`**        | `physical`  | `int`    | Marcha real (-1 R, 0 N, 1-18).        |
+|                   | `dashboard` | `string` | Marcha visual (ej: "4L", "R1").       |
+| **`damage`**      | `engine`    | `float`  | Porcentaje de desgaste (0-100%).      |
+|                   | `wheels`    | `float`  | Desgaste de neumáticos (0-100%).      |
 
-### 3. `status` (Estados de Cabina)
+### 3. `lights` (Estado de Indicadores)
 
-Campos booleanos (`true`/`false`) para indicadores visuales:
+Campos booleanos (`true`/`false`) sincronizados con los testigos de la cabina:
 
 - `parking_brake`, `motor_brake`.
-- `blinker_l`, `blinker_r`.
-- `lights_low`, `lights_high`, `lights_beacon`, `lights_hazard`.
-- `cruise_control`.
+- `blinker_left`, `blinker_right`.
+- `beam_low`, `beam_high`.
+- `hazard`, `beacon`.
 
 ## 🛠️ Notas de Implementación
 
-- **Frecuencia:** El servidor envía una snapshot cada vez que detecta un cambio en la memoria (aprox. 60fps).
-- **Conversiones:** Todas las conversiones matemáticas (m/s a km/h, litros a galones, etc.) se realizan en el servidor para mantener la App ligera.
-- **Detección:** Si el usuario cambia las unidades en el menú del juego, el JSON cambiará automáticamente en el siguiente frame.
+- **Frecuencia (20Hz):** El servidor envía una ráfaga cada 50ms (0.05s) para garantizar una fluidez visual perfecta sin saturar la red local.
+- **Service Discovery:** El servidor emite un broadcast UDP a `255.255.255.255:5555` informando sobre su IP y Puerto de datos.
+- **Autenticación:** La App debe enviar el PIN mostrado en consola al conectarse antes de empezar a recibir telemetría.
