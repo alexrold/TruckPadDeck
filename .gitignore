@@ -17,7 +17,6 @@ bun.lockb
 
 # VSCode
 .vscode/
-old-app/
 node_modules/
 **/node_modules/
 
@@ -30,7 +29,7 @@ Desktop.ini
 *.exe
 *.obj
 *.pdb
-scs-sdk-*
+!scs-sdk-plugin/**/*.dll
 *GEMINI*
 GEMINI.md
 *GEMINI.md*
