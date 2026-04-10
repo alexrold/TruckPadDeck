@@ -8,55 +8,65 @@ Este repositorio sigue una arquitectura modular: cada dashboard está separado e
 
 ## 🧭 Estructura principal del proyecto
 
-```
-├── app/
+```text
+├── app/                                ← Enrutamiento (Expo Router)
 │   ├── (tabs)/
-│   │   ├── _layout.tsx          ← menú principal
-│   │   ├── index.tsx            ← dashboard principal
-│   │   ├── settings.tsx         ← configuración (nick, país)
-│   │   └── debug.tsx            ← debug + conexión
+│   │   ├── _layout.tsx                 ← Menú principal (Tabs)
+│   │   ├── index.tsx                   ← Dashboard principal / Biblioteca
+│   │   ├── settings.tsx                ← Configuración (Usuario, Preferencias)
+│   │   └── debug.tsx                   ← Herramientas de diagnóstico
 │   ├── dashboards/
-│   │   ├── _layout.tsx
-│   │   └── [id].tsx             ← router genérico de dashboards
-│   └── _layout.tsx              ← ConnectionProvider aquí
+│   │   └── [id].tsx                    ← Visor dinámico de tableros
+│   ├── _layout.tsx                     ← Root Layout (Providers & Fuentes)
+│   └── +not-found.tsx                  ← Manejo de rutas inexistentes
 │
-├── src/
-│   ├── modules/                 ← cada dashboard es un módulo
-│   │   ├── shared/              ← recursos entre ALGUNOS dashboards
-│   │   │   ├── fonts/
-│   │   │   └── components/
-│   │   ├── dashboard-a/
-│   │   │   ├── index.tsx
-│   │   │   ├── components/
-│   │   │   ├── hooks/
-│   │   │   │   └── useDashboardAFonts.ts
-│   │   │   └── theme.ts         ← colores/fuentes SOLO de este dash
-│   │   ├── dashboard-b/
-│   │   │   └── ...
-│   │   └── dashboard-c/
-│   │       └── ...
-│   │
-│   ├── components/
-│   │   ├── themed/              ← componentes base globales
-│   │   │   ├── ThemedText.tsx
-│   │   │   ├── ThemedView.tsx
-│   │   │   └── index.ts         ← barrel
-│   │   └── ui/                  ← botones, modales globales
-│   │
-│   ├── context/
-│   │   └── ConnectionContext.tsx ← modal de conexión global
-│   │
-│   ├── hooks/                   ← hooks globales
-│   │   ├── useColorScheme.ts
-│   │   └── useThemeColor.ts
-│   │
-│   └── constants/
-│       └── Colors.ts            ← solo colores globales
+├── assets/                             ← Recursos físicos estáticos
+│   ├── fonts/                          ← Tipografías (.ttf, .otf)
+│   └── images/                         ← Iconos, splash y placeholders
 │
-└── assets/
-    └── fonts/                   ← todos los .ttf físicos aquí
-        ├── Orbitron-Bold.ttf
-        └── RobotoMono.ttf
+├── components/                         ← UI Atómica (Componentes globales)
+│   ├── themed/                         ← Sistema @themed (Soporte nativo de temas)
+│   │   ├── ThemedButton.tsx            ← Botones con variantes dinámicas
+│   │   ├── ThemedCard.tsx              ← Contenedores con elevación y bordes
+│   │   ├── ThemedIcon.tsx              ← Iconos reactivos al color del tema
+│   │   ├── ThemedInfoItem.tsx          ← Pares de datos (Icono-Etiqueta-Valor)
+│   │   ├── ThemedSwitch.tsx            ← Interruptor deslizante personalizado
+│   │   ├── ThemedText.tsx              ← Tipografía estandarizada
+│   │   ├── ThemedView.tsx              ← Contenedores base con Safe Area
+│   │   └── index.ts                    ← Barrel de exportación
+│   └── ExternalLink.tsx                ← Enlaces externos seguros
+│
+├── constants/                          ← Datos estáticos y configuraciones
+│   ├── Colors.ts                       ← Paleta de colores oficial
+│   ├── DashboardDataSeed.ts            ← Catálogo de dashboards disponibles
+│   └── defaultDashboardImage.ts        ← Imagen de respaldo para tarjetas
+│
+├── hooks/                              ← Hooks de infraestructura UI
+│   ├── themed/
+│   │   └── useThemeColor.ts            ← Consumo reactivo de la paleta
+│   └── useColorScheme.ts               ← Lógica de esquema de color (Híbrido)
+│
+└── src/                                ← Lógica de Dominio e Integración
+    ├── features/                       ← Módulos por dominio funcional
+    │   ├── home/                       ← Lógica de Biblioteca y Búsqueda
+    │   └── dashboard/                  ← Lógica de Detalle y Gestión
+    ├── store/                          ← Estado global (Zustand)
+    │   ├── useConnectionStore.ts       ← Gestión de Red y Handshake
+    │   ├── useTelemetryStore.ts        ← Datos en tiempo real (20Hz)
+    │   ├── useUIStore.ts               ← Preferencias (Idioma, Tema)
+    │   └── ...                         ← Favoritos, Descargas
+    ├── i18n/                           ← Internacionalización
+    │   ├── es.ts | en.ts               ← Diccionarios de idiomas
+    │   └── index.ts                    ← Orquestador i18next
+    ├── hooks/                          ← Hooks de lógica reutilizable
+    │   ├── useTelemetryConnection.ts   ← Motor WebSocket
+    │   ├── useHardwareManager.ts       ← Control de WakeLock
+    │   └── useTranslation.ts           ← Acceso tipado a textos
+    ├── lib/                            ← Utilidades y Helpers
+    │   └── utils.ts                    ← Tailwind Merge y funciones puras
+    └── modules/                        ← Catálogo de Skins (Dashboards Reales)
+        ├── shared/                     ← Componentes comunes entre skins
+        └── dashboard-x/                ← Implementación visual específica
 ```
 
 ---
